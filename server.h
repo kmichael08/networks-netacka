@@ -14,6 +14,7 @@ private:
     uint32_t width = 800, height = 600, port = 12345, speed = 50, turning_speed = 6;
     static const uint64_t RANDOMIZATION_FACTOR = 279470273;
     static const uint64_t RANDOMIZATION_MODULO = 4294967291;
+    static const int MAX_CLIENTS = 42;
 
     uint32_t next_random_number();
 
