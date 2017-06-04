@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "server.h"
 #include "utils.h"
 
@@ -44,5 +45,28 @@ void Server::print_arguments() {
 
 Server::Server(int argc, char **argv) {
     parse_arguments(argc, argv);
+}
 
+bool compare_players(Player* pl1, Player* pl2) {
+    return pl1->get_name() < pl2->get_name();
+}
+
+
+Game* Server::new_game(uint32_t width, uint32_t height, vector<Player *> &players) {
+    uint32_t game_id = next_random_number();
+    vector<Player*> current_players(players);
+    sort(current_players.begin(), current_players.end(), compare_players);
+    for (Player* player : players) {
+        uint32_t headx = next_random_number() % width;
+        uint32_t heady = next_random_number()% height;
+        double direction = next_random_number() % 360;
+        player->set_parameters(headx, heady, direction);
+        player->reborn();
+    }
+
+    return new Game(game_id, width, height, current_players, turn_time());
+}
+
+uint32_t Server::turn_time() {
+    return 1000 / speed;
 }

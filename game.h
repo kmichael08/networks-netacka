@@ -10,10 +10,29 @@ using namespace std;
 
 class Board {
     uint32_t width, height;
-    uint32_t** board; /* 0 - empty, 1 - body, 2 - head */
+    uint8_t** board; /* 0 - empty, 1 - body */
 public:
     Board(uint32_t width, uint32_t height);
     bool is_occupied(uint32_t x, uint32_t y);
+};
+
+class Player {
+    uint32_t session_id;
+    string name;
+    double headx, heady;
+    double direction;
+    bool alive;
+public:
+    Player(uint32_t session_id, string name);
+    void set_parameters(double headx, double heady, double direction);
+    uint32_t get_session_id();
+    double get_headx();
+    double get_heady();
+    double get_direction();
+    string get_name();
+    bool is_alive();
+    void reborn(); /* alive again - new game starts */
+
 };
 
 
@@ -21,9 +40,10 @@ class Game {
     uint32_t game_id;
     Board* board;
     vector<Event*> all_events;
-    // players also
+    vector<Player*> players; /* players sorted by their names */
+    uint32_t turn_time;
 public:
-    Game(uint32_t game_id);
+    Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& players, uint32_t turn_time);
 };
 
 
