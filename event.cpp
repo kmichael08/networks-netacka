@@ -36,14 +36,14 @@ uint32_t GameOver::raw_data_len() { return 0; }
 uint32_t NewGame::raw_data_len() {
     uint32_t raw_data_length = 8;
     for (char* name: players_names_list)
-        raw_data_length += strlen(name) + 1;
+        raw_data_length += strlen(name) + 1; /* names separated by \0 */
     return raw_data_length;
 }
 
 char* Pixel::raw_data() {
     char* result = new char[raw_data_len()];
     result[0] = player_number;
-    uint32_t net_x = htonl(x), net_y = htonl(y);
+    uint32_t net_x = htonl(x), net_y = htonl(y); /* network bytes order */
     memcpy(result + 1, &net_x, 4);
     memcpy(result + 5, &net_y, 4);
     return result;
@@ -61,7 +61,7 @@ char* GameOver::raw_data() {
 
 char* NewGame::raw_data() {
 
-    uint32_t net_maxx = htonl(maxx), net_maxy = htonl(maxy);
+    uint32_t net_maxx = htonl(maxx), net_maxy = htonl(maxy); /* network bytes order */
 
     char* result = new char[raw_data_len()];
     memcpy(result, &net_maxx, 4);
@@ -69,6 +69,7 @@ char* NewGame::raw_data() {
 
     uint32_t current_length = 8;
 
+    /* ame separated by '\0' */
     for (char* name: players_names_list) {
         uint32_t name_length = (uint32_t) strlen(name);
         memcpy(result + current_length, name, name_length);
@@ -86,12 +87,12 @@ uint32_t Event::event_raw_data_len() {
 char* Event::event_raw_data() {
     char* result = new char[event_raw_data_len()];
     uint32_t net_len = htonl(event_raw_data_len() - 8); /* without len and csrc */
-    uint32_t net_event_no = htonl(event_no);
+    uint32_t net_event_no = htonl(event_no); /* network bytes order */
     memcpy(result, &net_len, 4);
     memcpy(result + 4, &net_event_no, 4);
     memcpy(result + 8, &event_type, 1);
     memcpy(result + 9, raw_data(), raw_data_len());
-    uint32_t net_csrc = htonl(csrc32(result, event_raw_data_len() - 4));
-    memcpy(result + event_raw_data_len() - 4, &net_csrc, 4);
+    uint32_t net_csrc = htonl(csrc32(result, event_raw_data_len() - 4)); /* withour checksum itself */
+    memcpy(result + event_raw_data_len() - 4, &net_csrc, 4); /* append calculated checksum */
     return result;
 }

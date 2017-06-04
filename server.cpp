@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "server.h"
 
+/* Parse arguments, exit with code 1 and a message in case of failure */
 void Server::parse_arguments(int argc, char **argv) {
 
     int c;
@@ -47,6 +48,7 @@ Server::Server(int argc, char **argv) {
     parse_arguments(argc, argv);
 }
 
+/* Comparator to sort players by their names lexicographically */
 bool compare_players(Player* pl1, Player* pl2) {
     return pl1->get_name() < pl2->get_name();
 }
@@ -58,7 +60,7 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
         uint32_t heady = next_random_number() % height;
         double direction = next_random_number() % 360;
         player->set_parameters(headx, heady, direction);
-        player->reborn();
+        player->reborn(); /* Alive at the beginning */
         if (game->get_board()->is_occupied(headx, heady)) {
             game->add_player_eliminated(player_num);
         }
@@ -74,8 +76,8 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
 Game* Server::new_game(uint32_t width, uint32_t height, vector<Player*> &players) {
     uint32_t game_id = next_random_number();
     vector<char*> players_names;
-    vector<Player*> current_players(players);
-    sort(current_players.begin(), current_players.end(), compare_players);
+    vector<Player*> current_players(players); /* Copy players, only the ones, that were present before start of the game */
+    sort(current_players.begin(), current_players.end(), compare_players); /* lexicographical sort by names */
 
     for (Player* player: current_players)
         players_names.push_back(player->get_name());

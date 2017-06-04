@@ -1,7 +1,3 @@
-//
-// Created by michal on 03.06.17.
-//
-
 #ifndef NETWORKS_NETACKA_EVENT_H
 #define NETWORKS_NETACKA_EVENT_H
 
@@ -12,17 +8,16 @@
 
 using namespace std;
 
-
 class Event {
 protected:
     uint32_t event_no;
     uint8_t event_type = 0; /* {0, 1, 2, 3} */
 public:
     Event(uint32_t event_no);
-    char* event_raw_data();
-    uint32_t event_raw_data_len();
-    virtual char* raw_data() = 0;
-    virtual uint32_t raw_data_len() = 0;
+    char* event_raw_data(); /* raw_data to send via udp representing whole event with its parameters */
+    uint32_t event_raw_data_len(); /* full raw_data length */
+    virtual char* raw_data() = 0; /* event_data */
+    virtual uint32_t raw_data_len() = 0; /* length of event_data */
 };
 
 
@@ -37,7 +32,7 @@ public:
 
 class Pixel : public Event {
     uint8_t player_number;
-    uint32_t x, y;
+    uint32_t x, y; /* position */
 public:
     Pixel(uint32_t event_no, uint8_t player_number, uint32_t x, uint32_t y);
     char* raw_data();

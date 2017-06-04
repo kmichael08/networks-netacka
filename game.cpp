@@ -6,7 +6,7 @@ width(width), height(height)
 {
     board = new uint8_t*[width];
     for (uint32_t i = 0; i < width; i++)
-        board[i] = new uint8_t[height];
+        board[i] = new uint8_t[height](); /* TODO check, but this should init with zeros */
 }
 
 bool Board::is_occupied(uint32_t x, uint32_t y) {
@@ -52,6 +52,7 @@ void Player::turn(int8_t turn_direction, uint32_t turning_speed) {
     direction = (uint32_t)(direction + turn_direction * turning_speed + MAX_DIRECTION) % MAX_DIRECTION;
 }
 
+/* TODO check the correctness of these formula */
 void Player::move() {
     headx += cos(direction);
     heady -= sin(direction);
@@ -74,16 +75,17 @@ void Game::add_new_game(uint32_t width, uint32_t height, vector<char*> &players_
 void Game::add_pixel(uint8_t player_number,uint32_t x, uint32_t y) {
     all_events.push_back(new Pixel((uint32_t)all_events.size(), player_number, x, y));
 }
+
 void Game::add_player_eliminated(uint8_t player_number) {
     all_events.push_back(new PlayerEliminated((uint32_t)all_events.size(), player_number));
-    players[player_number]->kill();
+    players[player_number]->kill(); /* Eliminated player is no longer alive */
 }
 
 bool Game::end_game() {
     int players_alive = 0;
     for (Player* player: players)
         players_alive += player->is_alive();
-    return players_alive > 1;
+    return players_alive <= 1;
 }
 
 void Game::move_snake(int8_t turn_direction, Player *player, uint8_t player_num) {
