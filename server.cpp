@@ -1,6 +1,5 @@
 #include <algorithm>
 #include "server.h"
-#include "utils.h"
 
 void Server::parse_arguments(int argc, char **argv) {
 
@@ -74,7 +73,7 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
 
 Game* Server::new_game(uint32_t width, uint32_t height, vector<Player*> &players) {
     uint32_t game_id = next_random_number();
-    vector<string> players_names;
+    vector<char*> players_names;
     vector<Player*> current_players(players);
     sort(current_players.begin(), current_players.end(), compare_players);
 

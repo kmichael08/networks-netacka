@@ -8,26 +8,31 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "utils.h"
 
 using namespace std;
 
 
 class Event {
 protected:
-    uint32_t  len; /* total length of fields event_* */
     uint32_t event_no;
     uint8_t event_type = 0; /* {0, 1, 2, 3} */
-    uint32_t crc32; /* checksum */
 public:
     Event(uint32_t event_no);
+    char* event_raw_data();
+    uint32_t event_raw_data_len();
+    virtual char* raw_data() = 0;
+    virtual uint32_t raw_data_len() = 0;
 };
 
 
 class NewGame : public Event {
     uint32_t maxx, maxy; /* width and height in pixels */
-    vector<string> players_names_list;
+    vector<char*> players_names_list;
 public:
-    NewGame(uint32_t event_no, uint32_t maxx, uint32_t maxy, vector<string>& players_names_list);
+    NewGame(uint32_t event_no, uint32_t maxx, uint32_t maxy, vector<char*>& players_names_list);
+    char* raw_data();
+    uint32_t raw_data_len();
 };
 
 class Pixel : public Event {
@@ -35,17 +40,23 @@ class Pixel : public Event {
     uint32_t x, y;
 public:
     Pixel(uint32_t event_no, uint8_t player_number, uint32_t x, uint32_t y);
+    char* raw_data();
+    uint32_t raw_data_len();
 };
 
 class PlayerEliminated : public Event {
     uint8_t player_number;
 public:
     PlayerEliminated(uint32_t event_no, uint8_t player_number);
+    char* raw_data();
+    uint32_t raw_data_len();
 };
 
 class GameOver : public Event {
 public:
     GameOver(uint32_t event_no);
+    char* raw_data();
+    uint32_t raw_data_len();
 };
 
 

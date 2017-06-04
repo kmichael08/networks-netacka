@@ -22,19 +22,19 @@ public:
 
 class Player {
     uint32_t session_id;
-    string name;
+    char* name;
     double headx, heady;
     double direction;
     bool alive;
     static const uint32_t MAX_DIRECTION = 360;
 public:
-    Player(uint32_t session_id, string name);
+    Player(uint32_t session_id, char* name);
     void set_parameters(double headx, double heady, double direction);
     uint32_t get_session_id();
     double get_headx();
     double get_heady();
     double get_direction();
-    string get_name();
+    char* get_name();
     bool is_alive();
     void reborn(); /* alive again - new game starts */
     void kill();
@@ -55,7 +55,7 @@ public:
          uint32_t turn_time, uint32_t turning_speed);
 
     void move_snake(int8_t turn_direction, Player* player, uint8_t player_num);
-    void add_new_game(uint32_t width, uint32_t height, vector<string>& players_names);
+    void add_new_game(uint32_t width, uint32_t height, vector<char*>& players_names);
     void add_pixel(uint8_t player_number, uint32_t x, uint32_t y);
     void add_player_eliminated(uint8_t player_number);
     void add_game_over();

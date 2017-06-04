@@ -26,13 +26,13 @@ Game::Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& p
 
 double Player::get_direction() { return direction; }
 
-Player::Player(uint32_t session_id, string name): session_id(session_id), name(name) {}
+Player::Player(uint32_t session_id, char* name): session_id(session_id), name(name) {}
 
 double Player::get_headx() { return headx; }
 
 double Player::get_heady() { return heady; }
 
-string Player::get_name() { return name; }
+char* Player::get_name() { return name; }
 
 uint32_t Player::get_session_id() { return session_id; }
 
@@ -67,7 +67,7 @@ void Game::add_game_over() {
     all_events.push_back(new GameOver((uint32_t)all_events.size()));
 }
 
-void Game::add_new_game(uint32_t width, uint32_t height, vector<string> &players_names) {
+void Game::add_new_game(uint32_t width, uint32_t height, vector<char*> &players_names) {
     all_events.push_back(new NewGame((uint32_t)all_events.size(), width, height, players_names));
 }
 
@@ -100,7 +100,7 @@ void Game::move_snake(int8_t turn_direction, Player *player, uint8_t player_num)
     }
     else {
         board->take((uint32_t)x, (uint32_t)y);
-        add_pixel(player_num, x, y);
+        add_pixel(player_num, (uint32_t)x, (uint32_t)y);
     }
 
 }
