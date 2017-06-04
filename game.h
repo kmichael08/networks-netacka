@@ -37,6 +37,7 @@ public:
     string get_name();
     bool is_alive();
     void reborn(); /* alive again - new game starts */
+    void kill();
     void turn(int8_t turn_direction, uint32_t turning_speed);
     void move();
 };
@@ -54,6 +55,11 @@ public:
          uint32_t turn_time, uint32_t turning_speed);
 
     void move_snake(int8_t turn_direction, Player* player);
+    void add_new_game(uint32_t width, uint32_t height, vector<string>& players_names);
+    void add_pixel(uint8_t player_number, uint32_t x, uint32_t y);
+    void add_player_eliminated(uint8_t player_number);
+    void add_game_over();
+    Board* get_board();
 };
 
 

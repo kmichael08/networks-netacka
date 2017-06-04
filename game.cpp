@@ -46,6 +46,8 @@ bool Player::is_alive() { return alive; }
 
 void Player::reborn() { alive = true; }
 
+void Player::kill() { alive = false; }
+
 void Player::turn(int8_t turn_direction, uint32_t turning_speed) {
     direction = (uint32_t)(direction + turn_direction * turning_speed + MAX_DIRECTION) % MAX_DIRECTION;
 }
@@ -57,6 +59,24 @@ void Player::move() {
 
 bool Board::inside_board(double x, double y) {
     return (x >= 0) && (y >= 0) && (x < width) && (y < height);
+}
+
+Board* Game::get_board() { return board; }
+
+void Game::add_game_over() {
+    all_events.push_back(new GameOver((uint32_t)all_events.size()));
+}
+
+void Game::add_new_game(uint32_t width, uint32_t height, vector<string> &players_names) {
+    all_events.push_back(new NewGame((uint32_t)all_events.size(), width, height, players_names));
+}
+
+void Game::add_pixel(uint8_t player_number,uint32_t x, uint32_t y) {
+    all_events.push_back(new Pixel((uint32_t)all_events.size(), player_number, x, y));
+}
+void Game::add_player_eliminated(uint8_t player_number) {
+    all_events.push_back(new PlayerEliminated((uint32_t)all_events.size(), player_number));
+    players[player_number]->kill();
 }
 
 void Game::move_snake(int8_t turn_direction, Player *player) {

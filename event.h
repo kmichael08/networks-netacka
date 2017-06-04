@@ -11,50 +11,41 @@
 
 using namespace std;
 
-class EventData {
+
+class Event {
+protected:
+    uint32_t  len; /* total length of fields event_* */
+    uint32_t event_no;
+    uint8_t event_type = 0; /* {0, 1, 2, 3} */
+    uint32_t crc32; /* checksum */
 public:
-    virtual uint8_t event_no() = 0;
+    Event(uint32_t event_no);
 };
 
-class NewGame : EventData {
+
+class NewGame : public Event {
     uint32_t maxx, maxy; /* width and height in pixels */
-    vector<string> players_list;
+    vector<string> players_names_list;
 public:
-    NewGame(uint32_t maxx, uint32_t maxy, vector<string>& players_list);
-
-    uint8_t event_no();
+    NewGame(uint32_t event_no, uint32_t maxx, uint32_t maxy, vector<string>& players_names_list);
 };
 
-class Pixel : EventData {
+class Pixel : public Event {
     uint8_t player_number;
     uint32_t x, y;
 public:
-    Pixel(uint8_t player_number, uint32_t x, uint32_t y);
-
-    uint8_t event_no();
+    Pixel(uint32_t event_no, uint8_t player_number, uint32_t x, uint32_t y);
 };
 
-class PlayerEliminated : EventData {
+class PlayerEliminated : public Event {
     uint8_t player_number;
 public:
-    PlayerEliminated(uint8_t player_number);
-
-    uint8_t event_no();
+    PlayerEliminated(uint32_t event_no, uint8_t player_number);
 };
 
-class GameOver : EventData {
+class GameOver : public Event {
 public:
-    GameOver();
-
-    uint8_t event_no();
-};
-
-class Event {
-    uint32_t  len; /* total length of fields event_* */
-    uint32_t event_no;
-    uint8_t event_type; /* {0, 1, 2, 3} */
-    uint32_t crc32; /* checksum */
-    EventData* event_data;
+    GameOver(uint32_t event_no);
 };
 
 

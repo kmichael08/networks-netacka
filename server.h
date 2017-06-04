@@ -29,6 +29,8 @@ public:
     void print_arguments();
 
     Game* new_game(uint32_t width, uint32_t height, vector<Player*>& players);
+
+    void init_players(vector<Player*> &current_players, Game* game);
 };
 
 
