@@ -35,8 +35,9 @@ void Server::parse_arguments(int argc, char **argv) {
 }
 
 uint32_t Server::next_random_number() {
+    uint64_t result = current_random_number;
     current_random_number = (current_random_number * RANDOMIZATION_FACTOR) % RANDOMIZATION_MODULO;
-    return (uint32_t ) current_random_number;
+    return (uint32_t ) result;
 }
 
 void Server::print_arguments() {
