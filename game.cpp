@@ -79,17 +79,28 @@ void Game::add_player_eliminated(uint8_t player_number) {
     players[player_number]->kill();
 }
 
-void Game::move_snake(int8_t turn_direction, Player *player) {
+bool Game::end_game() {
+    int players_alive = 0;
+    for (Player* player: players)
+        players_alive += player->is_alive();
+    return players_alive > 1;
+}
+
+void Game::move_snake(int8_t turn_direction, Player *player, uint8_t player_num) {
     player->turn(turn_direction, turning_speed);
     player->move();
     double x = player->get_headx();
     double y = player->get_heady();
 
-    if (!board->inside_board(x, y)) {} /* TODO - OUT OF BOARD */
-    if (board->is_occupied(uint32_t(x), (uint32_t)(y))) {} /* TODO - COLLISION */
+    if (!board->inside_board(x, y)) {
+        add_player_eliminated(player_num);
+    }
+    if (board->is_occupied(uint32_t(x), (uint32_t)(y))) {
+        add_player_eliminated(player_num);
+    }
     else {
         board->take((uint32_t)x, (uint32_t)y);
-        /* TODO PIXEL */
+        add_pixel(player_num, x, y);
     }
 
 }

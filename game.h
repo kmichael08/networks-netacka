@@ -54,12 +54,13 @@ public:
     Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& players,
          uint32_t turn_time, uint32_t turning_speed);
 
-    void move_snake(int8_t turn_direction, Player* player);
+    void move_snake(int8_t turn_direction, Player* player, uint8_t player_num);
     void add_new_game(uint32_t width, uint32_t height, vector<string>& players_names);
     void add_pixel(uint8_t player_number, uint32_t x, uint32_t y);
     void add_player_eliminated(uint8_t player_number);
     void add_game_over();
     Board* get_board();
+    bool end_game();
 };
 
 
