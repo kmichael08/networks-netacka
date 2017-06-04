@@ -63,8 +63,8 @@ Game* Server::new_game(uint32_t width, uint32_t height, vector<Player *> &player
         player->set_parameters(headx, heady, direction);
         player->reborn();
     }
-
-    return new Game(game_id, width, height, current_players, turn_time());
+    /* TODO events PIXEL, PLAYER_ELIMINATED */
+    return new Game(game_id, width, height, current_players, turn_time(), turning_speed);
 }
 
 uint32_t Server::turn_time() {

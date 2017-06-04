@@ -1,6 +1,8 @@
 1) Design the whole structure, classes, what are the responsibilities?
 a) draw the workflow!!!
-2) Add datagrams sending/receiving, (poll/select?)
+b) events
+c) comments
+2) Add datagrams sending/receiving, (poll/select?) - SUNDAY make the schema
 3) What were the mistakes in the first task
 4) How to test server alone separately?
 
