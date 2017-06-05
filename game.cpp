@@ -129,6 +129,10 @@ uint8_t Player::get_player_number() const { return player_number; }
 
 void Player::set_player_number(uint8_t number) { player_number = number; }
 
+Player::Player(Player *other_player) {
+    Player(other_player->session_id, other_player->name, other_player->client_address);
+}
+
 uint32_t Game::get_game_id() const { return game_id; }
 
 vector<Event *> Game::get_events_from(uint32_t first_event_no) {

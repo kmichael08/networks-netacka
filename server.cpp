@@ -4,6 +4,8 @@
 #include "err.h"
 #include "datagramServerToClient.h"
 
+using VPIT = vector<Player*>::iterator;
+
 /* Parse arguments, exit with code 1 and a message in case of failure */
 void Server::parse_arguments(int argc, char **argv) {
 
@@ -155,6 +157,10 @@ void Server::receive_udp() {
     }
     else { /* Existing player */
         player->update();
+        /* if the session id is larger than initial, the player is reseted TODO test it */
+        if (datagram->get_session_id() > player->get_session_id()) {
+            reset_player(player, datagram->no_player_name());
+        }
     }
 
     if (!datagram->is_valid()) {}
@@ -203,3 +209,21 @@ void Server::send_events(uint32_t first_event, Player *player) {
         send_udp(player, datagram);
 
 }
+void Server::reset_player(Player *player, vector<Player *> &players_list) {
+    for (VPIT iter = players_list.begin(); iter != players_list.end(); iter++)
+        if ((*iter) == player)
+            (*iter) = new Player(player);
+
+}
+
+
+void Server::reset_player(Player *player, bool is_spectator) {
+    if (is_spectator) {
+        reset_player(player, spectators);
+    }
+    else {
+        reset_player(player, players);
+    }
+}
+
+

@@ -35,6 +35,7 @@ class Player {
     uint8_t player_number; /* player_number in current game */
 public:
     Player(uint64_t session_id, char* name, sockaddr_in* client_address);
+    Player(Player* other_player);
     void set_parameters(double headx, double heady, double direction);
     /* Player should have the same session_id */
     uint64_t get_session_id();

@@ -74,6 +74,11 @@ public:
 
     /* Add new_player, it is ensured it can be added */
     Player* add_new_player(DatagramClientToServer *datagram, sockaddr_in *client_address);
+
+    static void reset_player(Player* player, vector<Player*>& players_list);
+
+    /* reset player - replace the old one with a new one with the same parameters */
+    void reset_player(Player *player, bool is_spectator);
 };
 
 
