@@ -1,6 +1,6 @@
 -length of the datagrams '\0' in the end
 -add poll, select? how to do the timeout? how not to block things
--implement csrc
+-implement crc
 -how to send after event occurs
 -unit tests - IMPORTANT
 -when to check end_game/kill player/new_game/not_responding

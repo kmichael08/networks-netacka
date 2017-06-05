@@ -1,5 +1,6 @@
 #include "datagramClientToServer.h"
 #include <cstring>
+#include <netinet/in.h>
 
 DatagramClientToServer::DatagramClientToServer(uint64_t session_id, int8_t turn_direction,
                                                    uint32_t next_expected_event_no, char* player_name) :
@@ -10,10 +11,12 @@ DatagramClientToServer::DatagramClientToServer(uint64_t session_id, int8_t turn_
 DatagramClientToServer::DatagramClientToServer(char *raw_data) {
     char* current_ptr = raw_data;
     memcpy(&session_id, current_ptr, 8);
+    session_id = be64toh(session_id); /* network to host bytes order */
     current_ptr += 8;
     memcpy(&turn_direction, current_ptr, 1);
     current_ptr++;
     memcpy(&next_expected_event_no, current_ptr, 4);
+    next_expected_event_no = ntohl(next_expected_event_no); /* network to host bytes order */
     current_ptr += 4;
     memcpy(player_name, current_ptr, strlen(current_ptr));
 }

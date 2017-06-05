@@ -11,4 +11,4 @@ uint32_t get_number(char *str_num) {
     return result;
 }
 
-uint32_t csrc32(char* data, uint32_t len) {}
+uint32_t crc32(char *data, uint32_t len) {}

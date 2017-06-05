@@ -15,6 +15,6 @@ uint32_t get_number(char *str_num);
  * @param len
  * @return checksum
  */
-uint32_t csrc32(char* data, uint32_t len); /* TODO Not implemented */
+uint32_t crc32(char *data, uint32_t len); /* TODO Not implemented */
 
 #endif //NETWORKS_NETACKA_UTILS_H

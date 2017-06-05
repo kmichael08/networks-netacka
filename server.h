@@ -79,6 +79,9 @@ public:
 
     /* reset player - replace the old one with a new one with the same parameters */
     void reset_player(Player *player, bool is_spectator);
+
+    /* check if the name already exists, if not empty */
+    bool name_exist(char* name);
 };
 
 

@@ -92,7 +92,7 @@ char* Event::event_raw_data() {
     memcpy(result + 4, &net_event_no, 4);
     memcpy(result + 8, &event_type, 1);
     memcpy(result + 9, raw_data(), raw_data_len());
-    uint32_t net_csrc = htonl(csrc32(result, event_raw_data_len() - 4)); /* withour checksum itself */
+    uint32_t net_csrc = htonl(crc32(result, event_raw_data_len() - 4)); /* withour checksum itself */
     memcpy(result + event_raw_data_len() - 4, &net_csrc, 4); /* append calculated checksum */
     return result;
 }

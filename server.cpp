@@ -149,9 +149,11 @@ void Server::receive_udp() {
     Player* player = get_player(client_address);
 
     if (player == nullptr) { /* First time we hear from the player */
-        if (current_players_number() == MAX_CLIENTS) /* Players number exceeded */
+        /* Players number exceeded or name already exists */
+        if (current_players_number() == MAX_CLIENTS || name_exist(datagram->get_player_name()))
             return;
-        else {
+        else
+        {
             player = add_new_player(datagram, client_address);
         }
     }
@@ -224,6 +226,14 @@ void Server::reset_player(Player *player, bool is_spectator) {
     else {
         reset_player(player, players);
     }
+}
+
+bool Server::name_exist(char* name) {
+    for (Player* player: players)
+        if (strncmp(player->get_name(), name, strlen(name)))
+            return true;
+
+    return false;
 }
 
 
