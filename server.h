@@ -17,7 +17,7 @@ private:
     static const uint64_t RANDOMIZATION_MODULO = 4294967291;
     static const int MAX_CLIENTS = 42;
     vector<Player*> players; /* Active players */
-    /* TODO add observers */
+    vector<Player*> spectators; /* Players with empty names, just watching */
 
     uint32_t next_random_number();
 

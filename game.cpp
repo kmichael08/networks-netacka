@@ -26,7 +26,12 @@ Game::Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& p
 
 double Player::get_direction() { return direction; }
 
-Player::Player(uint32_t session_id, char* name): session_id(session_id), name(name) {}
+Player::Player(uint32_t session_id, char* name): session_id(session_id), name(name),
+                                                 last_activity_time(uint32_t(time(NULL))) {}
+
+bool Player::not_responding() {
+    return time(NULL) - last_activity_time >= TWO_SECS_IN_MICROSECS;
+}
 
 double Player::get_headx() { return headx; }
 

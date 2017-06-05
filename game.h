@@ -28,6 +28,8 @@ class Player {
     double direction;
     bool alive;
     static const uint32_t MAX_DIRECTION = 360;
+    uint32_t last_activity_time;
+    static const uint32_t TWO_SECS_IN_MICROSECS = 2000000;
 public:
     Player(uint32_t session_id, char* name);
     void set_parameters(double headx, double heady, double direction);
@@ -42,6 +44,7 @@ public:
     void kill();
     void turn(int8_t turn_direction, uint32_t turning_speed);
     void move(); /* Make a move in the current direction with a distance 1 */
+    bool not_responding(); /* Client not responding for two seconds */
 };
 
 
