@@ -33,6 +33,7 @@ private:
     struct sockaddr_in client_address;
     socklen_t snda_len, rcva_len;
     const int MAX_CLIENT_DATAGRAM_SIZE = 80;
+    Game* current_game;
 
 public:
     Server(int argc, char* argv[]);

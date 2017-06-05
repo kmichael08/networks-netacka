@@ -1,9 +1,14 @@
-1) Design the whole structure, classes, what are the responsibilities?
-a) draw the workflow!!!
-b) events
-c) comments
-2) Add datagrams sending/receiving, (poll/select?) - SUNDAY make the schema
-3) What were the mistakes in the first task
-4) How to test server alone separately?
-
-
+-check for session_id
+-implement sending datagrams with events, not exceed 512bytes
+-add poll, select? how to do the timeout? how not to block things
+-implement csrc
+-how to send after event occurs
+-unit tests - IMPORTANT
+-when to check end_game/kill player/new_game/not_responding
+-mistakes from the first task
+-how to test the solution, how to test parts separately
+-read questions from szkopul, read the task description in detail
+-errors handling
+-makefile
+-ipv6
+-const expressions

@@ -94,7 +94,8 @@ bool Game::end_game() {
     return players_alive <= 1;
 }
 
-void Game::move_snake(int8_t turn_direction, Player *player, uint8_t player_num) {
+void Game::move_snake(int8_t turn_direction, Player *player) {
+    uint8_t player_num = player->get_player_number();
     player->turn(turn_direction, turning_speed);
     player->move();
     double x = player->get_headx();
@@ -123,3 +124,7 @@ bool Player::equal_address(sockaddr_in *second_address) {
 void Player::update() {
     last_activity_time = (uint32_t) time(NULL);
 }
+
+uint8_t Player::get_player_number() { return player_number; }
+
+void Player::set_player_number(uint8_t number) { player_number = number; }

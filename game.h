@@ -32,6 +32,7 @@ class Player {
     static const uint32_t TWO_SECS_IN_MICROSECS = 2000000;
     struct sockaddr_in* client_address;
     uint32_t last_activity_time;
+    uint8_t player_number; /* player_number in current game */
 public:
     Player(uint64_t session_id, char* name, sockaddr_in* client_address);
     void set_parameters(double headx, double heady, double direction);
@@ -50,6 +51,8 @@ public:
     struct sockaddr_in* get_client_address();
     bool equal_address(sockaddr_in* second_address); /* Is this a player with a given address */
     void update(); /* change last_activity_time to now */
+    void set_player_number(uint8_t number); /* set the number for the current game */
+    uint8_t get_player_number(); /* get the number for the current game */
 };
 
 
@@ -64,7 +67,7 @@ public:
     Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& players,
          uint32_t turn_time, uint32_t turning_speed);
 
-    void move_snake(int8_t turn_direction, Player* player, uint8_t player_num);
+    void move_snake(int8_t turn_direction, Player* player);
 
     /* Add events of different types respectively */
     void add_new_game(uint32_t width, uint32_t height, vector<char*>& players_names);

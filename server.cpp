@@ -73,6 +73,7 @@ bool compare_players(Player* pl1, Player* pl2) {
 void Server::init_players(vector<Player *>& current_players, Game* game) {
     uint8_t player_num = 0;
     for (Player* player : players) {
+        player->set_player_number(player_num);
         uint32_t headx = next_random_number() % width;
         uint32_t heady = next_random_number() % height;
         double direction = next_random_number() % 360;
@@ -157,6 +158,7 @@ void Server::receive_udp() {
     if (!datagram->is_valid()) {}
     else {
         send_events(datagram->get_next_expected_event_no(), player);
+        current_game->move_snake(datagram->get_turn_direction(), player);
     }
 }
 
