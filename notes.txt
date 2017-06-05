@@ -1,4 +1,3 @@
--check for session_id
 -length of the datagrams '\0' in the end
 -add poll, select? how to do the timeout? how not to block things
 -implement csrc

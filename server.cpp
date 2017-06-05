@@ -163,7 +163,7 @@ void Server::receive_udp() {
         }
     }
 
-    if (!datagram->is_valid()) {}
+    if (!datagram->is_valid()) {} /* TODO init the game OR move_snake */
     else {
         send_events(datagram->get_next_expected_event_no(), player);
         current_game->move_snake(datagram->get_turn_direction(), player);
