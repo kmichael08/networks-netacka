@@ -9,6 +9,8 @@
 #include "datagramClientToServer.h"
 #include <netinet/in.h>
 
+using VPIT = vector<Player*>::iterator;
+
 using namespace std;
 
 class Server {
@@ -93,6 +95,10 @@ public:
     void finish_game();
 
     bool all_players_ready() const;
+
+    void disconnect_not_responding_users();
+
+    VPIT find_player(Player* player);
 };
 
 

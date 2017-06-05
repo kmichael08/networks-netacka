@@ -17,6 +17,7 @@ int main(int argc, char* argv[]) {
                 server.finish_game();
             }
         }
+        server.disconnect_not_responding_users();
     }
 
 }

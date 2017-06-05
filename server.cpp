@@ -268,7 +268,23 @@ bool Server::all_players_ready() const {
     for (Player* player: players)
         if (!player->is_alive())
             return false;
-    return true;
+    return players.size() > 1; /* at least two players required */
 }
 
+VPIT Server::find_player(Player *player) {
+    for (VPIT iter = players.begin(); iter != players.end(); iter++)
+        if ((*iter) == player)
+            return iter;
+    return players.end(); /* Something went wrong */
+}
+
+
+void Server::disconnect_not_responding_users() {
+    for (Player* player: players) /* TODO maybe spectators also */
+        if (player->not_responding()) {
+            VPIT position = find_player(player);
+            players.erase(position);
+        }
+
+}
 

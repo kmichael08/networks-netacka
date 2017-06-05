@@ -146,4 +146,5 @@ uint32_t Game::get_events_number() const {
 void Game::end_game() {
     for (Player* player: players)
         player->kill();
+    add_game_over();
 }
