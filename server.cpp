@@ -1,7 +1,8 @@
 #include <algorithm>
+#include <cstring>
 #include "server.h"
 #include "err.h"
-#include "datagramClientToServer.h"
+#include "datagramServerToClient.h"
 
 /* Parse arguments, exit with code 1 and a message in case of failure */
 void Server::parse_arguments(int argc, char **argv) {
@@ -119,12 +120,13 @@ bool Server::listen()  {
     return poll(sock, 1, TIMEOUT_MILLISECS) == 1;
 }
 
-void Server::send_udp(Player* player, char* datagram, uint32_t len) {
-        int sflags = 0;
-        ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
-                                 (sockaddr *) player->get_client_address(), snda_len);
-        if (snd_len < 0 || size_t(snd_len) != len)
-            syserr("error on sending datagram to client socket");
+void Server::send_udp(Player* player, char* datagram) {
+    size_t len = strlen(datagram);
+    int sflags = 0;
+    ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
+                             (sockaddr *) player->get_client_address(), snda_len);
+    if (snd_len < 0 || size_t(snd_len) != len)
+        syserr("error on sending datagram to client socket");
 }
 
 int Server::current_players_number() {
@@ -191,7 +193,13 @@ Player* Server::get_player(sockaddr_in *client_address) {
     return result;
 }
 
-/* TODO not implemented */
+
 void Server::send_events(uint32_t first_event, Player *player) {
+    vector<Event*> events_to_send = current_game->get_events_from(first_event);
+
+    DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
+
+    for (char* datagram : data->datagrams())
+        send_udp(player, datagram);
 
 }

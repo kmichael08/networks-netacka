@@ -52,7 +52,7 @@ public:
     bool equal_address(sockaddr_in* second_address); /* Is this a player with a given address */
     void update(); /* change last_activity_time to now */
     void set_player_number(uint8_t number); /* set the number for the current game */
-    uint8_t get_player_number(); /* get the number for the current game */
+    uint8_t get_player_number() const; /* get the number for the current game */
 };
 
 
@@ -77,6 +77,9 @@ public:
     Board* get_board();
     /* true - less than 2 players left, otherwise false */
     bool end_game();
+    /* get all events starting with a given one TODO check copying and test it */
+    vector<Event*> get_events_from(uint32_t first_event_no);
+    uint32_t get_game_id() const;
 };
 
 

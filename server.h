@@ -55,10 +55,8 @@ public:
 
     /**
     * Send udp datagram.
-    * @client_address pointer to a structure with a client address
-    * @sock socket
     */
-    void send_udp(Player* player, char* datagram, uint32_t len);
+    void send_udp(Player* player, char* datagram);
 
     /** Send all events staring from first_event to the player via udp,
      *  possibly splitted as to fit in the max udp size

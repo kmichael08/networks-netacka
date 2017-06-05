@@ -125,6 +125,12 @@ void Player::update() {
     last_activity_time = (uint32_t) time(NULL);
 }
 
-uint8_t Player::get_player_number() { return player_number; }
+uint8_t Player::get_player_number() const { return player_number; }
 
 void Player::set_player_number(uint8_t number) { player_number = number; }
+
+uint32_t Game::get_game_id() const { return game_id; }
+
+vector<Event *> Game::get_events_from(uint32_t first_event_no) {
+    return vector<Event *>(all_events.begin() + first_event_no, all_events.end());
+}
