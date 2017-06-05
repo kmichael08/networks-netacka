@@ -81,7 +81,6 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
         uint32_t heady = next_random_number() % height;
         double direction = next_random_number() % 360;
         player->set_parameters(headx, heady, direction);
-        player->reborn(); /* Alive at the beginning */
         if (game->get_board()->is_occupied(headx, heady)) {
             game->add_player_eliminated(player_num);
         }
@@ -94,7 +93,7 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
 
 }
 
-Game* Server::new_game(uint32_t width, uint32_t height, vector<Player*> &players) {
+void Server::new_game() {
     uint32_t game_id = next_random_number();
     vector<char*> players_names;
     vector<Player*> current_players(players); /* Copy players, only the ones, that were present before start of the game */
@@ -109,7 +108,9 @@ Game* Server::new_game(uint32_t width, uint32_t height, vector<Player*> &players
 
     init_players(current_players, game);
 
-    return game;
+    active_game = true;
+
+    current_game = game;
 }
 
 uint32_t Server::turn_time() {
@@ -168,7 +169,10 @@ void Server::receive_udp() {
     if (!datagram->is_valid()) {} /* TODO init the game OR move_snake */
     else {
         send_events(datagram->get_next_expected_event_no(), player);
-        current_game->move_snake(datagram->get_turn_direction(), player);
+        if (active_game)
+            current_game->move_snake(datagram->get_turn_direction(), player);
+        else
+            player->reborn();
     }
 }
 
@@ -203,6 +207,9 @@ Player* Server::get_player(sockaddr_in *client_address) {
 
 
 void Server::send_events(uint32_t first_event, Player *player) {
+    if (first_event >= current_game->get_events_number()) /* there is less event */
+        return;
+
     vector<Event*> events_to_send = current_game->get_events_from(first_event);
 
     DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
@@ -234,6 +241,34 @@ bool Server::name_exist(char* name) {
             return true;
 
     return false;
+}
+
+void Server::send_to_all() {
+    for (Player* player: players)
+        send_events(first_event_not_sent_to_all, player);
+    for (Player* player: spectators)
+        send_events(first_event_not_sent_to_all, player);
+
+    first_event_not_sent_to_all = current_game->get_events_number();
+}
+
+bool Server::is_game_active() const {
+    return active_game;
+}
+
+Game *Server::get_current_game() {
+    return current_game;
+}
+
+void Server::finish_game() {
+    active_game = false;
+}
+
+bool Server::all_players_ready() const {
+    for (Player* player: players)
+        if (!player->is_alive())
+            return false;
+    return true;
 }
 
 

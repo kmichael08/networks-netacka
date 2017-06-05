@@ -34,14 +34,15 @@ private:
     socklen_t snda_len, rcva_len;
     const int MAX_CLIENT_DATAGRAM_SIZE = 80;
     Game* current_game;
-
+    uint32_t first_event_not_sent_to_all = 0;
+    bool active_game = 0;
 public:
     Server(int argc, char* argv[]);
 
     void print_arguments();
 
     /* Init the new game, with a given parameters */
-    Game* new_game(uint32_t width, uint32_t height, vector<Player*>& players);
+    void new_game();
 
     /* Init starting positions and directions of the players */
     void init_players(vector<Player*> &current_players, Game* game);
@@ -82,6 +83,16 @@ public:
 
     /* check if the name already exists, if not empty */
     bool name_exist(char* name);
+
+    void send_to_all();
+
+    bool is_game_active() const;
+
+    Game* get_current_game();
+
+    void finish_game();
+
+    bool all_players_ready() const;
 };
 
 

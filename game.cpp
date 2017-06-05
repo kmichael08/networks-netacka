@@ -87,7 +87,7 @@ void Game::add_player_eliminated(uint8_t player_number) {
     players[player_number]->kill(); /* Eliminated player is no longer alive */
 }
 
-bool Game::end_game() {
+bool Game::game_ended() {
     int players_alive = 0;
     for (Player* player: players)
         players_alive += player->is_alive();
@@ -137,4 +137,13 @@ uint32_t Game::get_game_id() const { return game_id; }
 
 vector<Event *> Game::get_events_from(uint32_t first_event_no) {
     return vector<Event *>(all_events.begin() + first_event_no, all_events.end());
+}
+
+uint32_t Game::get_events_number() const {
+    return (uint32_t)all_events.size();
+}
+
+void Game::end_game() {
+    for (Player* player: players)
+        player->kill();
 }

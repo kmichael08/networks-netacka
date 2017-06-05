@@ -27,7 +27,7 @@ class Player {
     char* name;
     double headx, heady;
     double direction;
-    bool alive;
+    bool alive = 0;
     static const uint32_t MAX_DIRECTION = 360;
     static const uint32_t TWO_SECS_IN_MICROSECS = 2000000;
     struct sockaddr_in* client_address;
@@ -77,10 +77,13 @@ public:
     void add_game_over();
     Board* get_board();
     /* true - less than 2 players left, otherwise false */
-    bool end_game();
+    bool game_ended();
     /* get all events starting with a given one TODO check copying and test it */
     vector<Event*> get_events_from(uint32_t first_event_no);
     uint32_t get_game_id() const;
+    uint32_t get_events_number() const;
+    /* Kill all players */
+    void end_game();
 };
 
 
