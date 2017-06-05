@@ -1,5 +1,7 @@
 #include <algorithm>
 #include "server.h"
+#include "err.h"
+#include "datagramClientToServer.h"
 
 /* Parse arguments, exit with code 1 and a message in case of failure */
 void Server::parse_arguments(int argc, char **argv) {
@@ -46,6 +48,21 @@ void Server::print_arguments() {
 
 Server::Server(int argc, char **argv) {
     parse_arguments(argc, argv);
+    sock = new pollfd;
+    sock->fd = socket(AF_INET, SOCK_DGRAM, 0); // creating IPv4 UDP socket
+    if (sock->fd < 0)
+        syserr("socket");
+
+    server_address.sin_family = AF_INET; //IPv4
+    server_address.sin_addr.s_addr = htonl(INADDR_ANY); //listening on all interfaces
+    server_address.sin_port = htons(port);
+
+    // bin the socket to a concrete address
+    if (bind(sock->fd, (struct sockaddr *) &server_address, (socklen_t) sizeof(server_address)) < 0)
+        syserr("bind");
+
+    snda_len = (socklen_t) sizeof(client_address);
+
 }
 
 /* Comparator to sort players by their names lexicographically */
@@ -93,4 +110,86 @@ Game* Server::new_game(uint32_t width, uint32_t height, vector<Player*> &players
 
 uint32_t Server::turn_time() {
     return 1000 / speed;
+}
+
+bool Server::listen()  {
+    sock->events = POLLIN;
+    sock->revents = 0;
+    return poll(sock, 1, TIMEOUT_MILLISECS) == 1;
+}
+
+void Server::send_udp(Player* player, char* datagram, uint32_t len) {
+        int sflags = 0;
+        ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
+                                 (sockaddr *) player->get_client_address(), snda_len);
+        if (snd_len < 0 || size_t(snd_len) != len)
+            syserr("error on sending datagram to client socket");
+}
+
+int Server::current_players_number() {
+    return (uint32_t)spectators.size() + (uint32_t)players.size();
+}
+
+void Server::receive_udp() {
+    struct sockaddr_in* client_address = new(sockaddr_in);
+    rcva_len = (socklen_t) sizeof(*client_address);
+    int flags = 0; // we do not request anything special
+    char* buffer = new char[MAX_CLIENT_DATAGRAM_SIZE];
+
+    size_t len = (size_t) recvfrom(sock->fd, buffer, (size_t) MAX_CLIENT_DATAGRAM_SIZE, flags,
+                                   (sockaddr *) client_address, &rcva_len);
+
+    DatagramClientToServer* datagram = new DatagramClientToServer(buffer);
+
+    Player* player = get_player(client_address);
+
+    if (player == nullptr) { /* First time we hear from the player */
+        if (current_players_number() == MAX_CLIENTS) /* Players number exceeded */
+            return;
+        else {
+            player = add_new_player(datagram, client_address);
+        }
+    }
+    else { /* Existing player */
+        player->update();
+    }
+
+    if (!datagram->is_valid()) {}
+    else {
+        send_events(datagram->get_next_expected_event_no(), player);
+    }
+}
+
+Player* Server::add_new_player(DatagramClientToServer *datagram, sockaddr_in *client_address) {
+    char* name = datagram->get_player_name();
+
+    Player* player = new Player(datagram->get_session_id(), name, client_address);
+
+    if (datagram->no_player_name())
+        spectators.push_back(player);
+    else
+        players.push_back(player);
+
+    return player;
+}
+
+
+Player* Server::get_player(sockaddr_in* client_address, vector<Player*>& players_list) {
+    for (Player* player: players_list)
+        if (player->equal_address(client_address))
+            return player;
+    return nullptr;
+}
+
+Player* Server::get_player(sockaddr_in *client_address) {
+    Player* result = get_player(client_address, players); /* active players */
+    if (result != nullptr)
+        return result;
+    result = get_player(client_address, spectators); /* search among spectators */
+    return result;
+}
+
+/* TODO not implemented */
+void Server::send_events(uint32_t first_event, Player *player) {
+
 }

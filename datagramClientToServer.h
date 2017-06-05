@@ -21,6 +21,8 @@ public:
     uint32_t get_next_expected_event_no();
     char* get_player_name();
     bool no_player_name();
+    bool is_valid(); /* Is the datagram valid */
+    static bool valid_name_charachter(char c);
 };
 
 

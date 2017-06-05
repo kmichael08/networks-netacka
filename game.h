@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include "event.h"
+#include <netinet/in.h>
 
 using namespace std;
 
@@ -22,19 +23,20 @@ public:
 };
 
 class Player {
-    uint32_t session_id;
+    uint64_t session_id;
     char* name;
     double headx, heady;
     double direction;
     bool alive;
     static const uint32_t MAX_DIRECTION = 360;
-    uint32_t last_activity_time;
     static const uint32_t TWO_SECS_IN_MICROSECS = 2000000;
+    struct sockaddr_in* client_address;
+    uint32_t last_activity_time;
 public:
-    Player(uint32_t session_id, char* name);
+    Player(uint64_t session_id, char* name, sockaddr_in* client_address);
     void set_parameters(double headx, double heady, double direction);
     /* Player should have the same session_id */
-    uint32_t get_session_id();
+    uint64_t get_session_id();
     double get_headx();
     double get_heady();
     double get_direction();
@@ -45,6 +47,9 @@ public:
     void turn(int8_t turn_direction, uint32_t turning_speed);
     void move(); /* Make a move in the current direction with a distance 1 */
     bool not_responding(); /* Client not responding for two seconds */
+    struct sockaddr_in* get_client_address();
+    bool equal_address(sockaddr_in* second_address); /* Is this a player with a given address */
+    void update(); /* change last_activity_time to now */
 };
 
 

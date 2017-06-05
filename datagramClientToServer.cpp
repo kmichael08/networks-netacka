@@ -23,3 +23,21 @@ uint32_t DatagramClientToServer::get_next_expected_event_no() { return next_expe
 char* DatagramClientToServer::get_player_name() { return player_name; }
 int8_t DatagramClientToServer::get_turn_direction() { return turn_direction; }
 bool DatagramClientToServer::no_player_name() { return strlen(player_name) == 0; }
+
+bool DatagramClientToServer::is_valid() {
+    if (turn_direction < -1 || turn_direction > 1)
+        return false; /* Wrong turn direction */
+
+    if (strlen(player_name) > 64)
+        return false; /* Player name is too long */
+
+    for (size_t i = 0; i < strlen(player_name); i++)
+        if (!valid_name_charachter(player_name[i]))
+            return false; /* invalid characters */
+
+    return true;
+}
+
+bool DatagramClientToServer::valid_name_charachter(char c) {
+    return int(c) >= 33 && int(c) <= 126;
+}

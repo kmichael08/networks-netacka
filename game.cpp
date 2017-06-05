@@ -26,8 +26,9 @@ Game::Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& p
 
 double Player::get_direction() { return direction; }
 
-Player::Player(uint32_t session_id, char* name): session_id(session_id), name(name),
-                                                 last_activity_time(uint32_t(time(NULL))) {}
+Player::Player(uint64_t session_id, char* name, sockaddr_in * client_address):
+        session_id(session_id), name(name), client_address(client_address), last_activity_time(uint32_t(time(NULL)))
+        {}
 
 bool Player::not_responding() {
     return time(NULL) - last_activity_time >= TWO_SECS_IN_MICROSECS;
@@ -39,7 +40,7 @@ double Player::get_heady() { return heady; }
 
 char* Player::get_name() { return name; }
 
-uint32_t Player::get_session_id() { return session_id; }
+uint64_t Player::get_session_id() { return session_id; }
 
 void Player::set_parameters(double headx, double heady, double direction) {
     this->headx = headx;
@@ -110,4 +111,15 @@ void Game::move_snake(int8_t turn_direction, Player *player, uint8_t player_num)
         add_pixel(player_num, (uint32_t)x, (uint32_t)y);
     }
 
+}
+
+struct sockaddr_in* Player::get_client_address() { return client_address; }
+
+bool Player::equal_address(sockaddr_in *second_address) {
+    sockaddr_in* address = this->client_address;
+    return address->sin_port == second_address->sin_port && address->sin_addr.s_addr == second_address->sin_addr.s_addr;
+}
+
+void Player::update() {
+    last_activity_time = (uint32_t) time(NULL);
 }
