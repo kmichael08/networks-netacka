@@ -3,7 +3,7 @@
 #include "datagramServerToClient.h"
 
 /* TODO NEW_GAME event may not fit into datagram alone - fix it */
-char* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t size) {
+Datagram* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t size) {
     char* datagram = new char[size];
     uint32_t current_position = 0;
     uint32_t net_game_id = htonl(game_id);
@@ -14,12 +14,13 @@ char* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t size)
         memcpy(datagram + current_position, (*iter)->event_raw_data(), event_length);
         current_position += event_length;
     }
-    return datagram;
+
+    return new Datagram(datagram, current_position);
 }
 
 
-vector<char *> DatagramServerToClient::datagrams() {
-    vector<char*> result;
+vector<Datagram *> DatagramServerToClient::datagrams() {
+    vector<Datagram*> result;
     vector<Event*>::iterator start = events.begin(), iter = events.begin();
     uint32_t current_size = 0;
 
@@ -47,3 +48,13 @@ vector<char *> DatagramServerToClient::datagrams() {
 DatagramServerToClient::DatagramServerToClient(uint32_t game_id, vector<Event *> &events) :
     game_id(game_id), events(events)
 {}
+
+Datagram::Datagram(char *data, size_t len): data(data), len(len) {}
+
+char *Datagram::get_data() {
+    return data;
+}
+
+size_t Datagram::get_len() const {
+    return len;
+}

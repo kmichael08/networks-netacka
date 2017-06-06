@@ -123,8 +123,7 @@ bool Server::listen()  {
     return poll(sock, 1, TIMEOUT_MILLISECS) == 1;
 }
 
-void Server::send_udp(Player* player, char* datagram) {
-    size_t len = strlen(datagram);
+void Server::send_udp(Player* player, char* datagram, size_t len) {
     int sflags = 0;
     ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
                              (sockaddr *) player->get_client_address(), snda_len);
@@ -145,7 +144,9 @@ void Server::receive_udp() {
     size_t len = (size_t) recvfrom(sock->fd, buffer, (size_t) MAX_CLIENT_DATAGRAM_SIZE, flags,
                                    (sockaddr *) client_address, &rcva_len);
 
-    DatagramClientToServer* datagram = new DatagramClientToServer(buffer);
+    cout << len << endl;
+
+    DatagramClientToServer* datagram = new DatagramClientToServer(buffer, len);
 
     Player* player = get_player(client_address);
 
@@ -214,8 +215,8 @@ void Server::send_events(uint32_t first_event, Player *player) {
 
     DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
 
-    for (char* datagram : data->datagrams())
-        send_udp(player, datagram);
+    for (Datagram* datagram : data->datagrams())
+        send_udp(player, datagram->get_data(), datagram->get_len());
 
 }
 void Server::reset_player(Player *player, vector<Player *> &players_list) {

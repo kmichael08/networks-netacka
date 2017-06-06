@@ -15,7 +15,7 @@ private:
 public:
     DatagramClientToServer(uint64_t session_id, int8_t turn_direction,
                            uint32_t next_expected_event_no, char* player_name);
-    DatagramClientToServer(char* raw_data);
+    DatagramClientToServer(char* raw_data, size_t len);
     uint64_t get_session_id();
     int8_t get_turn_direction();
     uint32_t get_next_expected_event_no();

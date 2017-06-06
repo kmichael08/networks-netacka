@@ -59,7 +59,7 @@ public:
     /**
     * Send udp datagram.
     */
-    void send_udp(Player* player, char* datagram);
+    void send_udp(Player* player, char* datagram, size_t len);
 
     /** Send all events staring from first_event to the player via udp,
      *  possibly splitted as to fit in the max udp size

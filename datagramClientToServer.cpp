@@ -8,7 +8,8 @@ DatagramClientToServer::DatagramClientToServer(uint64_t session_id, int8_t turn_
         next_expected_event_no(next_expected_event_no), player_name(player_name)
 {}
 
-DatagramClientToServer::DatagramClientToServer(char *raw_data) {
+DatagramClientToServer::DatagramClientToServer(char *raw_data, size_t len) {
+    raw_data[len] = '\0';
     char* current_ptr = raw_data;
     memcpy(&session_id, current_ptr, 8);
     session_id = be64toh(session_id); /* network to host bytes order */
