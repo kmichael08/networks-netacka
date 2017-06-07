@@ -11,9 +11,9 @@ using namespace std;
 class Event {
 protected:
     uint32_t event_no;
-    uint8_t event_type = 0; /* {0, 1, 2, 3} */
+    uint8_t event_type; /* {0, 1, 2, 3} */
 public:
-    Event(uint32_t event_no);
+    Event(uint32_t event_no, uint8_t event_type);
     char* event_raw_data(); /* raw_data to send via udp representing whole event with its parameters */
     uint32_t event_raw_data_len(); /* full raw_data length */
     virtual char* raw_data() = 0; /* event_data */
@@ -22,23 +22,25 @@ public:
     static vector<Event*>& parse_events(char* event_data, size_t len);
     /* Take the event from the raw_data, return nullptr if there is any error */
     /* parse event_data and return event with given parameters, if error ocurrs return nullptr */
-    static Event* parse_single_event_data(
-            uint32_t events_length, uint32_t event_no, uint8_t event_type, uint32_t crc32,
+    static Event* parse_single_event_data(uint32_t event_no, uint8_t event_type,
             char* event_data, size_t event_data_length
     );
+    uint8_t get_event_type() { return event_type; }
 };
 
 
 class NewGame : public Event {
     uint32_t maxx, maxy; /* width and height in pixels */
     vector<char*> players_names_list;
+    static const uint32_t MAX_NAME_LENGTH = 64;
 public:
     NewGame(uint32_t event_no, uint32_t maxx, uint32_t maxy, vector<char*>& players_names_list);
     char* raw_data();
     uint32_t raw_data_len();
-    static Event* parse_single_event_data(uint32_t event_no, char* event_data, size_t event_data_length
-    );
-
+    static Event* parse_single_event_data(uint32_t event_no, char* event_data, size_t event_data_length);
+    uint32_t get_maxx() const { return maxx; }
+    uint32_t get_maxy() const { return maxy; }
+    vector<char*> get_players_name_list() { return players_names_list; }
 };
 
 class Pixel : public Event {
@@ -49,7 +51,9 @@ public:
     char* raw_data();
     uint32_t raw_data_len();
     static Event* parse_single_event_data(uint32_t event_no, char* event_data, size_t event_data_length);
-
+    uint8_t get_player_number() const { return player_number; }
+    uint32_t get_x() const { return x; }
+    uint32_t get_y() const { return y; }
 };
 
 class PlayerEliminated : public Event {
@@ -60,7 +64,7 @@ public:
     uint32_t raw_data_len();
     static Event* parse_single_event_data(uint32_t event_no, char* event_data, size_t event_data_length
     );
-
+    uint8_t get_player_number() const { return player_number; }
 };
 
 class GameOver : public Event {
@@ -69,7 +73,6 @@ public:
     char* raw_data();
     uint32_t raw_data_len();
     static Event* parse_single_event_data(uint32_t event_no, size_t event_data_length);
-
 };
 
 

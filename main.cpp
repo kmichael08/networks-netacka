@@ -2,7 +2,7 @@
 
 int main(int argc, char* argv[]) {
     Server server = Server(argc, argv);
-    server.print_arguments();
+    //server.print_arguments();
 
     while (true) {
         if (server.listen()) { /* receive udp */

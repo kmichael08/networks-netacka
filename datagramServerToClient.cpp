@@ -5,7 +5,7 @@
 
 /* TODO NEW_GAME event may not fit into datagram alone - fix it */
 Datagram* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t size) {
-    char* datagram = new char[size];
+    char* datagram = new char[size + 4]; /* 4 additional bytes for game_id */
     uint32_t current_position = 0;
     uint32_t net_game_id = htonl(game_id);
     memcpy(datagram, &net_game_id, 4);
@@ -15,6 +15,8 @@ Datagram* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t s
         memcpy(datagram + current_position, (*iter)->event_raw_data(), event_length);
         current_position += event_length;
     }
+
+    assert(current_position == size + 4);
 
     return new Datagram(datagram, current_position);
 }
@@ -54,7 +56,16 @@ DatagramServerToClient *DatagramServerToClient::parse_datagram(char* datagram, s
     assert(len > 4);
     uint32_t parsed_game_id;
     memcpy(&parsed_game_id, datagram, 4);
+    parsed_game_id = ntohl(parsed_game_id);
     return new DatagramServerToClient(parsed_game_id, Event::parse_events(datagram + 4, len - 4));
+}
+
+uint32_t DatagramServerToClient::get_game_id() const {
+    return game_id;
+}
+
+vector<Event *>& DatagramServerToClient::get_events() {
+    return events;
 }
 
 
