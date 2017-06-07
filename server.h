@@ -99,6 +99,7 @@ public:
     void disconnect_not_responding_users();
 
     VPIT find_player(Player* player);
+
 };
 
 

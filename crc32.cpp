@@ -108,7 +108,7 @@ uint32_t crc_32( char *input_str, size_t num_bytes ) {
             crc = (crc >> 8) ^ crc_tab32[ (crc ^ (uint32_t) *ptr++) & 0x000000FFul ];
         }
 
-    return (crc ^ 0xFFFFFFFFul);
+    return uint32_t(crc ^ 0xFFFFFFFFul);
 
 }  /* crc_32 */
 

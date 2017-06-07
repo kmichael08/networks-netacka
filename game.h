@@ -31,8 +31,9 @@ class Player {
     static const uint32_t MAX_DIRECTION = 360;
     static const uint32_t TWO_SECS_IN_MICROSECS = 2000000;
     struct sockaddr_in* client_address;
-    uint32_t last_activity_time;
+    uint64_t last_activity_time;
     uint8_t player_number; /* player_number in current game */
+    int8_t last_turn_direction; /* last sent direction in current turn */
 public:
     Player(uint64_t session_id, char* name, sockaddr_in* client_address);
     Player(Player* other_player);
@@ -54,8 +55,20 @@ public:
     void update(); /* change last_activity_time to now */
     void set_player_number(uint8_t number); /* set the number for the current game */
     uint8_t get_player_number() const; /* get the number for the current game */
+    int8_t get_last_turn_direction() const; /* get the last turn direction */
+    void set_current_turn_direction(int8_t last_direction); /* set the last turn direction */
+
 };
 
+class Clock {
+    time_t last_turn_start_time;
+    uint32_t next_turn_time;
+    uint32_t average_turn_time;
+public:
+    Clock(uint32_t turn_time);
+    bool end_turn() const;
+    void next_turn(); /* reset last_turn_start_time */
+};
 
 class Game {
     uint32_t game_id;
@@ -64,6 +77,7 @@ class Game {
     vector<Player*> players; /* players sorted by their names */
     uint32_t turn_time;
     uint32_t turning_speed;
+    Clock* clock;
 public:
     Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& players,
          uint32_t turn_time, uint32_t turning_speed);
@@ -84,6 +98,10 @@ public:
     uint32_t get_events_number() const;
     /* Kill all players */
     void end_game();
+    bool end_turn() const; /* Turn time passed */
+    void next_turn(); /* change the turn and reset players directions */
+    void move_snakes(); /* move all the snakes in their last direction in the end of the turn */
+
 };
 
 

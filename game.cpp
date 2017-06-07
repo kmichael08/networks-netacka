@@ -21,7 +21,7 @@ uint32_t Board::get_width() { return width; }
 Game::Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& players,
            uint32_t turn_time, uint32_t turning_speed) :
         game_id(game_id), board(new Board(width, height)), players(players),
-        turn_time(turn_time), turning_speed(turning_speed)
+        turn_time(turn_time), turning_speed(turning_speed), clock(new Clock(turn_time))
 {}
 
 double Player::get_direction() { return direction; }
@@ -31,7 +31,7 @@ Player::Player(uint64_t session_id, char* name, sockaddr_in * client_address):
         {}
 
 bool Player::not_responding() {
-    return time(NULL) - last_activity_time >= TWO_SECS_IN_MICROSECS;
+    return get_time_microseconds() - last_activity_time >= TWO_SECS_IN_MICROSECS;
 }
 
 double Player::get_headx() { return headx; }
@@ -122,7 +122,7 @@ bool Player::equal_address(sockaddr_in *second_address) {
 }
 
 void Player::update() {
-    last_activity_time = (uint32_t) time(NULL);
+    last_activity_time = get_time_microseconds();
 }
 
 uint8_t Player::get_player_number() const { return player_number; }
@@ -147,4 +147,43 @@ void Game::end_game() {
     for (Player* player: players)
         player->kill();
     add_game_over();
+}
+
+void Game::move_snakes() {
+    for (Player* player: players)
+        if (player->is_alive())
+            move_snake(player->get_last_turn_direction(), player);
+}
+
+bool Game::end_turn() const {
+    return clock->end_turn();
+}
+
+void Game::next_turn() {
+    clock->next_turn();
+    for (Player* player: players)
+        player->set_current_turn_direction(0);
+}
+
+void Player::set_current_turn_direction(int8_t turn_direction) { last_turn_direction = turn_direction;}
+
+int8_t Player::get_last_turn_direction() const {
+    return last_turn_direction;
+}
+
+Clock::Clock(uint32_t turn_time): next_turn_time(turn_time), average_turn_time(turn_time) {
+    last_turn_start_time = get_time_microseconds();
+}
+
+bool Clock::end_turn() const {
+    uint64_t delta = 1000; /* 1ms */
+    /* if the time from the last is larger than the turn time (with delta) */
+    return (get_time_microseconds() - last_turn_start_time >= next_turn_time - delta);
+}
+
+void Clock::next_turn() {
+    uint64_t temp = get_time_microseconds();
+    uint32_t passed = (uint32_t)(temp - last_turn_start_time); /* used time */
+    int32_t delta = next_turn_time - passed; /* how much left from the previous turn, may be negative */
+    next_turn_time = average_turn_time + delta;
 }
