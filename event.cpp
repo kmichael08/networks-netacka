@@ -1,6 +1,7 @@
 #include "event.h"
 #include <cstring>
 #include <netinet/in.h>
+#include "err.h"
 
 NewGame::NewGame(uint32_t event_no, uint32_t maxx, uint32_t maxy, vector<char*>& players_names_list) :
     Event(event_no), maxx(maxx), maxy(maxy), players_names_list(players_names_list)
@@ -49,15 +50,49 @@ char* Pixel::raw_data() {
     return result;
 }
 
+Event *Pixel::parse_single_event_data(uint32_t event_no, char *event_data, size_t event_data_length) {
+    if (event_data_length == 9) {
+        uint8_t player_num;
+        uint32_t x, y;
+        memcpy(&player_num, event_data, 1);
+        memcpy(&x, event_data + 1, 4);
+        memcpy(&y, event_data + 5, 4);
+        x = ntohl(x);
+        y = ntohl(y);
+
+        return new Pixel(event_no, player_num, x, y);
+    }
+
+    return nullptr;
+}
+
 char* PlayerEliminated::raw_data() {
     char* result = new char[raw_data_len()];
     result[0] = player_number;
     return result;
 }
 
+Event* PlayerEliminated::parse_single_event_data(uint32_t event_no, char *event_data, size_t event_data_length) {
+    if (event_data_length == 1) {
+        uint8_t player_num;
+        memcpy(&player_num, event_data, 1);
+        return new PlayerEliminated(event_no, player_num);
+    }
+
+    return nullptr;
+}
+
 char* GameOver::raw_data() {
     return nullptr;
 }
+
+Event *GameOver::parse_single_event_data(uint32_t event_no, size_t event_data_length) {
+    if (event_data_length == 0)
+        return new GameOver(event_no);
+    return nullptr;
+}
+
+
 
 char* NewGame::raw_data() {
 
@@ -80,6 +115,38 @@ char* NewGame::raw_data() {
     return result;
 }
 
+Event *NewGame::parse_single_event_data(uint32_t event_no, char *event_data, size_t event_data_length) {
+    if (event_data_length < 9) /* Not enough for maxx, maxy */
+        return nullptr;
+
+    if (event_data[event_data_length - 1] != '\0') /* each name should be ended with this */
+        return nullptr;
+
+    uint32_t maxx, maxy;
+    char* current_ptr = event_data;
+    memcpy(&maxx, current_ptr, 4);
+    current_ptr += 4;
+    memcpy(&maxy, current_ptr, 4);
+    current_ptr += 4;
+    maxx = ntohl(maxx);
+    maxy = ntohl(maxy);
+    vector<char*> player_names;
+
+    size_t name_len;
+
+    while (current_ptr != event_data + event_data_length) {
+        name_len = strlen(current_ptr);
+        if (name_len == 0 || name_len > 64) /* names length are supposed to be in range [1, 64] for active players */
+            return nullptr;
+        char** player_name = new char*;
+        memcpy(*player_name, current_ptr, name_len + 1);
+        current_ptr += name_len + 1;
+        player_names.push_back(*player_name);
+    }
+
+    return new NewGame(event_no, maxx, maxy, player_names);
+}
+
 uint32_t Event::event_raw_data_len() {
     return 13 + raw_data_len();
 }
@@ -95,4 +162,69 @@ char* Event::event_raw_data() {
     uint32_t net_csrc = htonl(crc32(result, event_raw_data_len() - 4)); /* withour checksum itself */
     memcpy(result + event_raw_data_len() - 4, &net_csrc, 4); /* append calculated checksum */
     return result;
+}
+
+vector<Event *> &Event::parse_events(char *event_data, size_t len) {
+    uint32_t events_len, event_no;
+    uint8_t event_type;
+    uint32_t crc32_value;
+    uint32_t event_length; /* the length of whole single event data */
+    uint32_t event_data_length; /* length of the event data */
+    vector<Event*>* res = new vector<Event*>;
+    char* current_ptr = event_data;
+    size_t remained_length = len;
+    /* 13 bytes for data without event_data */
+    while (current_ptr != event_data && remained_length > 13) {
+        memcpy(&events_len, current_ptr, 4);
+        current_ptr += 4;
+        remained_length -= 4;
+        memcpy(&event_no, current_ptr, 4);
+        current_ptr += 4;
+        remained_length -= 4;
+        memcpy(&event_type, current_ptr, 1);
+        current_ptr ++;
+        remained_length--;
+        events_len = ntohl(events_len);
+        event_no = ntohl(event_no);
+        if (events_len <= 5)
+            syserr("Wrong event len");
+        if (event_type > 3)
+            syserr("Wrong event type");
+
+        event_data_length = events_len - 5; /* minus len(events_len) and len(event_no) */
+        event_length = events_len + 9; /* plus len(events_len) and len(crc32) */
+        memcpy(&crc32_value, current_ptr + event_data_length, 4);
+        crc32_value = ntohl(crc32_value);
+
+        remained_length -= event_data_length - 4;
+        /* incorrect checksum breaks the parsing */
+        if (crc32(event_data, event_length) != crc32_value)
+            break;
+
+        Event* resulted_event =
+                parse_single_event_data(events_len, event_no, event_type, crc32_value, current_ptr, event_data_length);
+
+        if (resulted_event != nullptr) /* correct event */
+        (*res).push_back(resulted_event);
+        else /* something got wrong in parsing event_data */
+            break;
+    }
+
+    return (*res);
+}
+
+Event *Event::parse_single_event_data(uint32_t events_length, uint32_t event_no, uint8_t event_type, uint32_t crc32,
+                                      char *event_data, size_t event_data_length) {
+    switch (event_type) {
+        case 0:
+            return NewGame::parse_single_event_data(event_no, event_data, event_data_length);
+        case 1:
+            return Pixel::parse_single_event_data(event_no, event_data, event_data_length);
+        case 2:
+            return PlayerEliminated::parse_single_event_data(event_no, event_data, event_data_length);
+        case 3:
+            return GameOver::parse_single_event_data(event_no, event_data_length);
+        default:
+            return nullptr;
+    }
 }

@@ -28,7 +28,7 @@ private:
     Datagram* make_datagram(VEIT start, VEIT end, uint32_t size);
 public:
     DatagramServerToClient(uint32_t game_id, vector<Event*>& events);
-    DatagramServerToClient* parse_datagram(char* datagram, size_t len); /* parse the (single) datagram from data */
+    static DatagramServerToClient* parse_datagram(char* datagram, size_t len); /* parse the (single) datagram from data */
     vector<Datagram*> datagrams(); /* datagrams splitted, so that they don't exceed MAX_DATAGRAM_SIZE */
     /* make datagram out of events from start to end of a given size */
 };
