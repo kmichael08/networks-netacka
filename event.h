@@ -18,6 +18,7 @@ public:
     uint32_t event_raw_data_len(); /* full raw_data length */
     virtual char* raw_data() = 0; /* event_data */
     virtual uint32_t raw_data_len() = 0; /* length of event_data */
+    static vector<Event*>& parse_events(char* event_data, size_t len); /* parse events from raw_data */
 };
 
 
