@@ -173,7 +173,8 @@ void Server::receive_udp() {
         if (active_game)
             player->set_current_turn_direction(datagram->get_turn_direction());
         else
-            player->reborn();
+            if (datagram->get_turn_direction() != 0) /* pressing left/right gives a singal of readiness */
+                player->reborn();
     }
 }
 
