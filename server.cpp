@@ -144,8 +144,6 @@ void Server::receive_udp() {
     size_t len = (size_t) recvfrom(sock->fd, buffer, (size_t) MAX_CLIENT_DATAGRAM_SIZE, flags,
                                    (sockaddr *) client_address, &rcva_len);
 
-    cout << len << endl;
-
     DatagramClientToServer* datagram = new DatagramClientToServer(buffer, len);
 
     Player* player = get_player(client_address);
@@ -169,12 +167,15 @@ void Server::receive_udp() {
 
     if (!datagram->is_valid()) {}
     else {
-        send_events(datagram->get_next_expected_event_no(), player);
-        if (active_game)
+
+        if (active_game) {
+            send_events(datagram->get_next_expected_event_no(), player);
             player->set_current_turn_direction(datagram->get_turn_direction());
-        else
+        }
+        else {
             if (datagram->get_turn_direction() != 0) /* pressing left/right gives a singal of readiness */
                 player->reborn();
+        }
     }
 }
 
@@ -213,6 +214,7 @@ void Server::send_events(uint32_t first_event, Player *player) {
         return;
 
     vector<Event*> events_to_send = current_game->get_events_from(first_event);
+
 
     DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
 

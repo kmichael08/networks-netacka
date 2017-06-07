@@ -19,7 +19,8 @@ DatagramClientToServer::DatagramClientToServer(char *raw_data, size_t len) {
     memcpy(&next_expected_event_no, current_ptr, 4);
     next_expected_event_no = ntohl(next_expected_event_no); /* network to host bytes order */
     current_ptr += 4;
-    memcpy(player_name, current_ptr, strlen(current_ptr));
+    player_name = new char[len - 13];
+    memcpy(player_name, current_ptr, len - 13);
 }
 
 uint64_t DatagramClientToServer::get_session_id() { return session_id; }

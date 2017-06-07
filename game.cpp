@@ -1,5 +1,6 @@
 #include "game.h"
 #include <cmath>
+#include <cassert>
 
 Board::Board(uint32_t width, uint32_t height) :
 width(width), height(height)
@@ -136,6 +137,7 @@ Player::Player(Player *other_player) {
 uint32_t Game::get_game_id() const { return game_id; }
 
 vector<Event *> Game::get_events_from(uint32_t first_event_no) {
+    assert(first_event_no < all_events.size());
     return vector<Event *>(all_events.begin() + first_event_no, all_events.end());
 }
 
