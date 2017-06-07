@@ -98,7 +98,9 @@ public:
 
     void disconnect_not_responding_users();
 
-    VPIT find_player(Player* player);
+    static void disconnect_not_responding_users(vector<Player*>& players_list);
+
+    static VPIT find_player(Player* player, vector<Player*>& players_list);
 
 };
 

@@ -222,6 +222,7 @@ void Server::send_events(uint32_t first_event, Player *player) {
         send_udp(player, datagram->get_data(), datagram->get_len());
 
 }
+
 void Server::reset_player(Player *player, vector<Player *> &players_list) {
     for (VPIT iter = players_list.begin(); iter != players_list.end(); iter++)
         if ((*iter) == player)
@@ -275,19 +276,25 @@ bool Server::all_players_ready() const {
     return players.size() > 1; /* at least two players required */
 }
 
-VPIT Server::find_player(Player *player) {
-    for (VPIT iter = players.begin(); iter != players.end(); iter++)
+VPIT Server::find_player(Player *player, vector<Player*>& players_list) {
+    for (VPIT iter = players_list.begin(); iter != players_list.end(); iter++)
         if ((*iter) == player)
             return iter;
-    return players.end(); /* Something went wrong */
+    return players_list.end();
 }
 
 
 void Server::disconnect_not_responding_users() {
-    for (Player* player: players) /* TODO maybe spectators also */
+    disconnect_not_responding_users(players);
+    disconnect_not_responding_users(spectators);
+}
+
+void Server::disconnect_not_responding_users(vector<Player *>& players_list) {
+    for (Player* player: players_list)
         if (player->not_responding()) {
-            VPIT position = find_player(player);
-            players.erase(position);
+            VPIT position = find_player(player, players_list);
+            if (position != players_list.end())
+                players_list.erase(position);
         }
 
 }
