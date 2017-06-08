@@ -22,12 +22,12 @@ public:
 
 class DatagramServerToClient {
 private:
-    static const int MAX_DATAGRAM_SIZE = 512; /* in bytes */
     uint32_t game_id;
     vector<Event*> events;
     /* make datagram out of events from start to end of a given size */
     Datagram* make_datagram(VEIT start, VEIT end, uint32_t size);
 public:
+    static const int MAX_DATAGRAM_SIZE = 512; /* in bytes */
     DatagramServerToClient(uint32_t game_id, vector<Event*>& events);
     static DatagramServerToClient* parse_datagram(char* datagram, size_t len); /* parse the (single) datagram from data */
     vector<Datagram*> datagrams(); /* datagrams splitted, so that they don't exceed MAX_DATAGRAM_SIZE */

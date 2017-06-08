@@ -1,5 +1,8 @@
 #include <cstdint>
 #include <cstring>
+#include <bits/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include "datagramServerToClient.h"
 #include "datagramClientToServer.h"
 #include "err.h"
@@ -9,6 +12,72 @@ char* ui_server_name;
 char* game_server_name;
 char* player_name;
 uint64_t session_id;
+
+/*================================================= */
+int sock;
+struct addrinfo addr_hints;
+struct addrinfo *addr_result;
+
+int flags, sflags;
+size_t len;
+ssize_t snd_len, rcv_len;
+struct sockaddr_in my_address;
+struct sockaddr_in srvr_address;
+socklen_t rcva_len;
+
+void init_connection_with_server() {
+
+    // 'converting' host/port in string to struct addrinfo
+    (void) memset(&addr_hints, 0, sizeof(struct addrinfo));
+    addr_hints.ai_family = AF_INET; // IPv4
+    addr_hints.ai_socktype = SOCK_DGRAM;
+    addr_hints.ai_protocol = IPPROTO_UDP;
+    addr_hints.ai_flags = 0;
+    addr_hints.ai_addrlen = 0;
+    addr_hints.ai_addr = NULL;
+    addr_hints.ai_canonname = NULL;
+    addr_hints.ai_next = NULL;
+    if (getaddrinfo(game_server_name, NULL, &addr_hints, &addr_result) != 0) {
+        syserr("getaddrinfo");
+    }
+
+    my_address.sin_family = AF_INET; // IPv4
+    my_address.sin_addr.s_addr =
+            ((struct sockaddr_in *) (addr_result->ai_addr))->sin_addr.s_addr; // address IP
+
+    my_address.sin_port = htons((uint16_t) game_server_port); // port from the command line
+    freeaddrinfo(addr_result);
+
+    sock = socket(PF_INET, SOCK_DGRAM, 0);
+    if (sock < 0)
+        syserr("socket");
+
+    sflags = 0;
+    rcva_len = (socklen_t) sizeof(my_address);
+}
+
+void send_datagram(char *datagram) {
+    snd_len = sendto(sock, datagram, len, sflags,
+                     (struct sockaddr *) &my_address, rcva_len);
+    if (snd_len != (ssize_t) len) {
+        syserr("partial/failed write");
+    }
+}
+
+Datagram* receive_datagram() {
+    char* buffer = new char[DatagramServerToClient::MAX_DATAGRAM_SIZE];
+    (void) memset(buffer, 0, sizeof(buffer));
+    flags = 0;
+    len = (size_t) sizeof(buffer) - 1;
+    rcva_len = (socklen_t) sizeof(srvr_address);
+    rcv_len = recvfrom(sock, buffer, len, flags,
+                       (struct sockaddr *) &srvr_address, &rcva_len);
+
+    if (rcv_len < 0)
+        syserr("read");
+
+    return new Datagram(buffer, (size_t)rcv_len);
+}
 
 void init_session_id() { session_id = get_time_microseconds(); }
 
@@ -67,4 +136,5 @@ int main(int argc, char* argv[]) {
     init_session_id();
     parse_arguments(argc, argv);
     print_arguments();
+
 }
