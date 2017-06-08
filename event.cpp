@@ -192,9 +192,6 @@ vector<Event *> &Event::parse_events(char *event_data, size_t len) {
 
         if (events_len < 5)
             syserr("Wrong event len");
-        if (event_type > 3)
-            syserr("Wrong event type");
-
 
         event_data_length = events_len - 5; /* minus len(events_len) and len(event_no) */
         event_length = events_len + 8; /* plus len(events_len) and len(crc32) */
@@ -203,6 +200,10 @@ vector<Event *> &Event::parse_events(char *event_data, size_t len) {
 
         if (crc32(current_ptr - 9, event_length - 4) != crc32_value)
             break;
+
+        if (event_type > 3) /* skipping unknown type, though with sane data and correct checksum */
+            continue;
+
 
         Event* resulted_event =
                 parse_single_event_data(event_no, event_type, current_ptr, event_data_length);
