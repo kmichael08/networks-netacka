@@ -14,6 +14,9 @@ set(TEST_S_TO_C err.h err.cpp utils.h server.cpp test_datagrams_server_to_client
 
 set(TEST_TIME utils.cpp utils.h err.cpp err.h crc32.cpp crc32.h test_gettime.cpp)
 
+set(CLIENT crc32.h crc32.cpp utils.h utils.cpp err.h err.cpp datagramClientToServer.h datagramClientToServer.cpp client.cpp)
+
 add_executable(siktacka-server ${SOURCE_FILES})
 add_executable(test_s_to_c ${TEST_S_TO_C})
 add_executable(test_time ${TEST_TIME})
+add_executable(siktacka-client ${CLIENT})

@@ -23,6 +23,7 @@ public:
     bool no_player_name();
     bool is_valid(); /* Is the datagram valid */
     static bool valid_name_charachter(char c);
+    static bool valid_player_name(char* player_name_arg);
 };
 
 

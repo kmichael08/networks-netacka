@@ -32,7 +32,6 @@ public:
 class NewGame : public Event {
     uint32_t maxx, maxy; /* width and height in pixels */
     vector<char*> players_names_list;
-    static const uint32_t MAX_NAME_LENGTH = 64;
 public:
     NewGame(uint32_t event_no, uint32_t maxx, uint32_t maxy, vector<char*>& players_names_list);
     char* raw_data();
@@ -41,6 +40,8 @@ public:
     uint32_t get_maxx() const { return maxx; }
     uint32_t get_maxy() const { return maxy; }
     vector<char*> get_players_name_list() { return players_names_list; }
+
+    static const uint32_t MAX_NAME_LENGTH = 64;
 };
 
 class Pixel : public Event {

@@ -1,4 +1,5 @@
 #include "datagramClientToServer.h"
+#include "event.h"
 #include <cstring>
 #include <netinet/in.h>
 
@@ -33,16 +34,22 @@ bool DatagramClientToServer::is_valid() {
     if (turn_direction < -1 || turn_direction > 1)
         return false; /* Wrong turn direction */
 
-    if (strlen(player_name) > 64)
-        return false; /* Player name is too long */
-
-    for (size_t i = 0; i < strlen(player_name); i++)
-        if (!valid_name_charachter(player_name[i]))
-            return false; /* invalid characters */
-
-    return true;
+    return valid_player_name(player_name);
 }
 
 bool DatagramClientToServer::valid_name_charachter(char c) {
     return int(c) >= 33 && int(c) <= 126;
 }
+
+bool DatagramClientToServer::valid_player_name(char *player_name_arg) {
+    if (strlen(player_name_arg) > NewGame::MAX_NAME_LENGTH)
+        return false; /* Player name is too long */
+
+    for (size_t i = 0; i < strlen(player_name_arg); i++)
+        if (!valid_name_charachter(player_name_arg[i]))
+            return false; /* invalid characters */
+
+    return true;
+}
+
+
