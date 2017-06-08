@@ -8,6 +8,9 @@ uint32_t game_server_port = 12345, ui_server_port = 12346;
 char* ui_server_name;
 char* game_server_name;
 char* player_name;
+uint64_t session_id;
+
+void init_session_id() { session_id = get_time_microseconds(); }
 
 void print_arguments() {
     cout << player_name << " " << game_server_name << ":" << game_server_port << " " << ui_server_name << ":" << ui_server_port << endl;
@@ -61,6 +64,7 @@ void parse_arguments(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
+    init_session_id();
     parse_arguments(argc, argv);
     print_arguments();
 }
