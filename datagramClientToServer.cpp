@@ -52,4 +52,22 @@ bool DatagramClientToServer::valid_player_name(char *player_name_arg) {
     return true;
 }
 
+Datagram *DatagramClientToServer::get_raw_datagram() {
+    size_t len = 13 + strlen(player_name) + 1;
+    char* datagram = new char[len];
+    char* current_ptr = datagram;
+    uint64_t net_session_id = htobe64(session_id);
+    memcpy(current_ptr, &net_session_id, 8);
+    current_ptr += 8;
+    memcpy(current_ptr, &turn_direction, 1);
+    current_ptr++;
+    uint32_t net_next_exp_event_no = htonl(next_expected_event_no);
+    memcpy(current_ptr, &net_next_exp_event_no, 4);
+    current_ptr += 4;
+    memcpy(current_ptr, player_name, strlen(player_name));
+    current_ptr += strlen(player_name);
+    *current_ptr = '\0';
+    return new Datagram(datagram, len);
+}
+
 

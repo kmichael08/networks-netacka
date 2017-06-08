@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include "datagramServerToClient.h"
 
 using namespace std;
 
@@ -24,6 +25,7 @@ public:
     bool is_valid(); /* Is the datagram valid */
     static bool valid_name_charachter(char c);
     static bool valid_player_name(char* player_name_arg);
+    Datagram* get_raw_datagram(); /* Take raw data, ready to send via udp from the class data */
 };
 
 

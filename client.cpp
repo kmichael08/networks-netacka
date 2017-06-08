@@ -7,6 +7,7 @@
 #include "datagramClientToServer.h"
 #include "err.h"
 #include "client_utils.h"
+#include "clock.h"
 
 uint32_t game_server_port = 12345, ui_server_port = 12346;
 char* ui_server_name;
@@ -20,16 +21,20 @@ struct addrinfo addr_hints;
 struct addrinfo *addr_result;
 
 int flags, sflags;
-size_t len;
 ssize_t snd_len, rcv_len;
 struct sockaddr_in my_address;
 struct sockaddr_in srvr_address;
+
+void init_clock();
+
 socklen_t rcva_len;
 
 /*================================================= */
-int8_t current_direction = 0;
+int8_t current_turn_direction = 0;
 uint32_t current_game_id = 0;
+uint32_t next_expected_event_no = 0; /* TODO manage the events */
 const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms */
+Clock* global_clock;
 /* ================================================ */
 
 
@@ -64,7 +69,7 @@ void init_connection_with_server() {
     rcva_len = (socklen_t) sizeof(my_address);
 }
 
-void send_datagram(char *datagram) {
+void send_datagram(char *datagram, size_t len) {
     snd_len = sendto(sock, datagram, len, sflags,
                      (struct sockaddr *) &my_address, rcva_len);
     if (snd_len != (ssize_t) len) {
@@ -76,7 +81,7 @@ Datagram* receive_datagram() {
     char* buffer = new char[DatagramServerToClient::MAX_DATAGRAM_SIZE];
     (void) memset(buffer, 0, sizeof(buffer));
     flags = 0;
-    len = (size_t) sizeof(buffer) - 1;
+    size_t len = (size_t) sizeof(buffer) - 1;
     rcva_len = (socklen_t) sizeof(srvr_address);
     rcv_len = recvfrom(sock, buffer, len, flags,
                        (struct sockaddr *) &srvr_address, &rcva_len);
@@ -140,9 +145,36 @@ void parse_arguments(int argc, char* argv[]) {
 
 }
 
+void init_clock() {
+    global_clock = new Clock(SEND_INTERVAL_IN_MICROSECS);
+}
+
+/**
+ * Datagram made of current data
+ */
+Datagram* datagram_to_send() {
+    DatagramClientToServer* datagramClientToServer =
+            new DatagramClientToServer(
+                    session_id, current_turn_direction, next_expected_event_no, player_name);
+    return datagramClientToServer->get_raw_datagram();
+}
+
 int main(int argc, char* argv[]) {
     init_session_id();
     parse_arguments(argc, argv);
     print_arguments();
+    init_connection_with_server();
+    init_clock();
 
+    while (true) {
+        if (global_clock->end_turn()) {
+            Datagram* datagram = datagram_to_send();
+            send_datagram(datagram->get_data(), datagram->get_len());
+            global_clock->next_turn();
+        }
+        else { /* receive from server or communicate with gui */
+
+        }
+    }
 }
+

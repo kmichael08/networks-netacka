@@ -66,12 +66,12 @@ class Game {
     Board* board;
     vector<Event*> all_events; /* all events from the start of the game */
     vector<Player*> players; /* players sorted by their names */
-    uint32_t turn_time;
+    uint64_t turn_time;
     uint32_t turning_speed;
     Clock* clock;
 public:
     Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& players,
-         uint32_t turn_time, uint32_t turning_speed);
+         uint64_t turn_time, uint32_t turning_speed);
 
     void move_snake(int8_t turn_direction, Player* player);
 

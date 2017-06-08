@@ -113,8 +113,8 @@ void Server::new_game() {
     current_game = game;
 }
 
-uint32_t Server::turn_time() {
-    return 1000 / speed;
+uint64_t Server::turn_time() {
+    return 1000000 / speed;
 }
 
 bool Server::listen()  {

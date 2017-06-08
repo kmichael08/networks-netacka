@@ -20,7 +20,7 @@ uint32_t Board::get_height() { return height; }
 uint32_t Board::get_width() { return width; }
 
 Game::Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& players,
-           uint32_t turn_time, uint32_t turning_speed) :
+           uint64_t turn_time, uint32_t turning_speed) :
         game_id(game_id), board(new Board(width, height)), players(players),
         turn_time(turn_time), turning_speed(turning_speed), clock(new Clock(turn_time))
 {}

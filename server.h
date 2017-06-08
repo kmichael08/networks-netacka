@@ -29,7 +29,7 @@ private:
 
     void parse_arguments(int argc, char* argv[]);
 
-    uint32_t turn_time();
+    uint64_t turn_time(); /* In microseconds */
     pollfd* sock;
     struct sockaddr_in server_address;
     struct sockaddr_in client_address;
