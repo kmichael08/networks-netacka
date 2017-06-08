@@ -28,7 +28,8 @@ socklen_t rcva_len;
 
 /*================================================= */
 int8_t current_direction = 0;
-
+uint32_t current_game_id = 0;
+const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms */
 /* ================================================ */
 
 

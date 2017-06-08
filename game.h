@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include "event.h"
+#include "clock.h"
 #include <netinet/in.h>
 
 using namespace std;
@@ -58,16 +59,6 @@ public:
     int8_t get_last_turn_direction() const; /* get the last turn direction */
     void set_current_turn_direction(int8_t last_direction); /* set the last turn direction */
 
-};
-
-class Clock {
-    time_t last_turn_start_time;
-    uint32_t next_turn_time;
-    uint32_t average_turn_time;
-public:
-    Clock(uint32_t turn_time);
-    bool end_turn() const;
-    void next_turn(); /* reset last_turn_start_time */
 };
 
 class Game {
