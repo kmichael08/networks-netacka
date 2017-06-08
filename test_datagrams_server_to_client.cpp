@@ -4,6 +4,7 @@
 #include <cassert>
 #include "event.h"
 #include "utils.h"
+#include "client_utils.h"
 
 int main(int argc, char* argv[]) {
    Server server = Server(argc, argv);
@@ -39,6 +40,11 @@ int main(int argc, char* argv[]) {
     for (Event* event: parsed_datagram->get_events()) {
         uint8_t type = event->get_event_type();
         cout << (unsigned long)type << " TYP "<< endl;
+
+        Datagram* gui_message = message_sent_to_gui(event, (char*)"Janusz\0");
+        if (gui_message != nullptr) {
+            cout << "GUI MESSAGE " << gui_message->get_data() << endl;
+        }
 
         if (type == 0) {
             NewGame* newGame = (NewGame*) event;
@@ -84,6 +90,9 @@ int main(int argc, char* argv[]) {
     for (Event* event: parsed_dgram->get_events()) {
         uint8_t type = event->get_event_type();
         cout << (unsigned long)type << " TYP "<< endl;
+
+        Datagram* gui_message = message_sent_to_gui(event, "Janusz");
+        cout << "GUI MESSAGE " << gui_message->get_data() << endl;
 
         if (type == 0) {
             NewGame* newGame = (NewGame*) event;

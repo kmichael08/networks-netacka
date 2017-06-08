@@ -1,5 +1,6 @@
 #include <cstring>
 #include <sys/time.h>
+#include <cinttypes>
 #include "utils.h"
 #include "err.h"
 #include "crc32.h"
@@ -25,4 +26,10 @@ uint64_t get_time_microseconds() {
     struct timeval *tv = new struct timeval;
     gettimeofday(tv, nullptr);
     return (uint64_t)(tv->tv_sec * 1000000LL + tv->tv_usec);
+}
+
+char *get_string_of_32bit(uint32_t number) {
+    char* result = new char[16];
+    sprintf(result,"%" PRIu32, number);
+    return result;
 }

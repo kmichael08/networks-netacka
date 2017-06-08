@@ -1,11 +1,12 @@
 #include <cstdint>
 #include <cstring>
-#include <bits/socket.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include "datagramServerToClient.h"
 #include "datagramClientToServer.h"
 #include "err.h"
+#include "client_utils.h"
 
 uint32_t game_server_port = 12345, ui_server_port = 12346;
 char* ui_server_name;
@@ -24,6 +25,12 @@ ssize_t snd_len, rcv_len;
 struct sockaddr_in my_address;
 struct sockaddr_in srvr_address;
 socklen_t rcva_len;
+
+/*================================================= */
+int8_t current_direction = 0;
+
+/* ================================================ */
+
 
 void init_connection_with_server() {
 

@@ -22,5 +22,6 @@ uint32_t crc32(char *data, uint32_t len);
  */
 uint64_t get_time_microseconds();
 
+char* get_string_of_32bit(uint32_t number);
 
 #endif //NETWORKS_NETACKA_UTILS_H
