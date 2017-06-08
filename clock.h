@@ -3,6 +3,8 @@
 
 #include <cstdint>
 #include <ctime>
+#include "utils.h"
+
 
 class Clock {
     /* all times in microseconds */

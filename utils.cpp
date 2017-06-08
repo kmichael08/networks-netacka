@@ -25,7 +25,9 @@ uint32_t crc32(char *data, uint32_t len) {
 uint64_t get_time_microseconds() {
     struct timeval *tv = new struct timeval;
     gettimeofday(tv, nullptr);
-    return (uint64_t)(tv->tv_sec * 1000000LL + tv->tv_usec);
+    time_t secs = tv->tv_sec, usecs = tv->tv_usec;
+    delete(tv);
+    return (uint64_t)(secs * 1000000LL + usecs);
 }
 
 char *get_string_of_32bit(uint32_t number) {
