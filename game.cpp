@@ -28,11 +28,12 @@ Game::Game(uint32_t game_id, uint32_t width, uint32_t height, vector<Player*>& p
 double Player::get_direction() { return direction; }
 
 Player::Player(uint64_t session_id, char* name, sockaddr_in * client_address):
-        session_id(session_id), name(name), client_address(client_address), last_activity_time(uint32_t(time(NULL)))
+        session_id(session_id), name(name), client_address(client_address), last_activity_time(get_time_microseconds())
         {}
 
 bool Player::not_responding() {
-    return get_time_microseconds() - last_activity_time >= TWO_SECS_IN_MICROSECS;
+    uint64_t current = get_time_microseconds();
+    return (current - last_activity_time >= TWO_SECS_IN_MICROSECS);
 }
 
 double Player::get_headx() { return headx; }
