@@ -1,8 +1,15 @@
--unit tests - IMPORTANT
 -mistakes from the first task
--read questions from szkopul, read the task description in detail
+-read the task description in detail
 -errors handling
 -makefile
 -ipv6
--const expressions
--test on students
+-test on students, MUST WORK WITH TEST SERVER
+-comments
+-send without duplicates, in order
+-test, understand everything
+-play with different parameters
+-asserty
+-game_id
+-more players
+-what if one event is larger than 512? what happens now?
+-spectator
