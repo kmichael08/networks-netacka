@@ -10,7 +10,6 @@ DatagramClientToServer::DatagramClientToServer(uint64_t session_id, int8_t turn_
 {}
 
 DatagramClientToServer::DatagramClientToServer(char *raw_data, size_t len) {
-    raw_data[len] = '\0';
     char* current_ptr = raw_data;
     memcpy(&session_id, current_ptr, 8);
     session_id = be64toh(session_id); /* network to host bytes order */
@@ -53,7 +52,7 @@ bool DatagramClientToServer::valid_player_name(char *player_name_arg) {
 }
 
 Datagram *DatagramClientToServer::get_raw_datagram() {
-    size_t len = 13 + strlen(player_name) + 1;
+    size_t len = 13 + strlen(player_name);
     char* datagram = new char[len];
     char* current_ptr = datagram;
     uint64_t net_session_id = htobe64(session_id);
@@ -66,7 +65,6 @@ Datagram *DatagramClientToServer::get_raw_datagram() {
     current_ptr += 4;
     memcpy(current_ptr, player_name, strlen(player_name));
     current_ptr += strlen(player_name);
-    *current_ptr = '\0';
     return new Datagram(datagram, len);
 }
 

@@ -8,7 +8,7 @@
 -send without duplicates, in order
 -test, understand everything
 -play with different parameters
--asserty
+-asserty, TODOS
 -game_id
 -more players
 -what if one event is larger than 512? what happens now?
