@@ -117,16 +117,19 @@ uint64_t Server::turn_time() {
     return 1000000 / speed;
 }
 
-bool Server::listen()  {
+bool Server::udp_listen()  {
     sock->events = POLLIN;
     sock->revents = 0;
-    return poll(sock, 1, TIMEOUT_MILLISECS) == 1;
+    return poll(sock, 1, TIMEOUT_MILLISECS) > 0;
 }
 
 void Server::send_udp(Player* player, char* datagram, size_t len) {
     int sflags = 0;
     ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
                              (sockaddr *) player->get_client_address(), snda_len);
+
+    cout << "SERVER SENDS UPD len " << snd_len << endl;
+
     if (snd_len < 0 || size_t(snd_len) != len)
         syserr("error on sending datagram to client socket");
 }
@@ -146,18 +149,27 @@ void Server::receive_udp() {
 
     DatagramClientToServer* datagram = new DatagramClientToServer(buffer, len);
 
+    cout << datagram->is_valid() << " " << (long)(datagram->get_turn_direction()) << " " << datagram->get_player_name() << endl;
+
     Player* player = get_player(client_address);
 
+    cout << players.size() <<  " PL SP " << spectators.size() << endl;
+
     if (player == nullptr) { /* First time we hear from the player */
+        cout << "FIRST TIME" << endl;
         /* Players number exceeded or name already exists */
-        if (current_players_number() == MAX_CLIENTS || name_exist(datagram->get_player_name()))
+        if (current_players_number() == MAX_CLIENTS || name_exist(datagram->get_player_name())) {
+            cout << "ZDZIWKO "  << current_players_number() << endl;
             return;
+        }
         else
         {
+            cout << "ADD " << endl;
             player = add_new_player(datagram, client_address);
         }
     }
     else { /* Existing player */
+        cout << "WE KNOW YOU!" << endl;
         player->update();
         /* if the session id is larger than initial, the player is reseted TODO test it */
         if (datagram->get_session_id() > player->get_session_id()) {
@@ -167,8 +179,9 @@ void Server::receive_udp() {
 
     if (!datagram->is_valid()) {}
     else {
-
+        cout << "VALID_DATAGRAM" << endl;
         if (active_game) {
+            cout << "ACTIVE GAME" << endl;
             send_events(datagram->get_next_expected_event_no(), player);
             player->set_current_turn_direction(datagram->get_turn_direction());
         }
@@ -181,6 +194,8 @@ void Server::receive_udp() {
 
 Player* Server::add_new_player(DatagramClientToServer *datagram, sockaddr_in *client_address) {
     char* name = datagram->get_player_name();
+
+    cout << " IM ADDING" << endl;
 
     Player* player = new Player(datagram->get_session_id(), name, client_address);
 
@@ -213,8 +228,11 @@ void Server::send_events(uint32_t first_event, Player *player) {
     if (first_event >= current_game->get_events_number()) /* there is less event */
         return;
 
+    cout << " SENDING EVENTS" << endl;
+
     vector<Event*> events_to_send = current_game->get_events_from(first_event);
 
+    cout << events_to_send.size() << " NUMBER OF SENT" << endl;
 
     DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
 
@@ -242,7 +260,7 @@ void Server::reset_player(Player *player, bool is_spectator) {
 
 bool Server::name_exist(char* name) {
     for (Player* player: players)
-        if (strncmp(player->get_name(), name, strlen(name)))
+        if (strncmp(player->get_name(), name, strlen(name)) == 0)
             return true;
 
     return false;

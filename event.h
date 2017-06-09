@@ -26,6 +26,7 @@ public:
             char* event_data, size_t event_data_length
     );
     uint8_t get_event_type() { return event_type; }
+    uint32_t get_event_no() const { return event_no; }
 };
 
 

@@ -3,6 +3,7 @@
 #include "client_utils.h"
 
 int8_t take_direction_from_gui_message(char* message, size_t len) {
+    len--; /* Ignore last character */
     if (strncmp(message, "LEFT_KEY_DOWN", len) == 0)
         return -1;
     if (strncmp(message, "LEFT_KEY_UP", len) == 0)
@@ -19,6 +20,8 @@ Datagram* datagram_out_of_string(string& mess) {
     message = new char[mess.length() + 1];
     strncpy(message, mess.c_str(), mess.length());
     message[mess.length()] = char(10);
+    cout << mess << " " << "MESS" << endl;
+    printf("%s DATAGRAM sent\n", message);
     return new Datagram(message, mess.length() + 1);
 }
 

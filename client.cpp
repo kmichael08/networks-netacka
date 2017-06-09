@@ -1,13 +1,16 @@
 #include <cstdint>
 #include <cstring>
 #include <sys/socket.h>
+#include <unistd.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <poll.h>
 #include "datagramServerToClient.h"
 #include "datagramClientToServer.h"
 #include "err.h"
 #include "client_utils.h"
 #include "clock.h"
+#include <netinet/tcp.h>
 
 uint32_t game_server_port = 12345, ui_server_port = 12346;
 char* ui_server_name;
@@ -15,10 +18,10 @@ char* game_server_name;
 char* player_name;
 uint64_t session_id;
 
-/*================================================= */
-int sock;
-struct addrinfo addr_hints;
-struct addrinfo *addr_result;
+/*================= UDP parameters ============================== */
+pollfd* udp_sock = new pollfd;
+struct addrinfo udp_addr_hints;
+struct addrinfo *udp_addr_result;
 
 int flags, sflags;
 ssize_t snd_len, rcv_len;
@@ -28,66 +31,155 @@ struct sockaddr_in srvr_address;
 void init_clock();
 
 socklen_t rcva_len;
+const int TIMEOUT_MILLISECS = 2;
+/*=================== TCP parameters ============================ */
+pollfd* tcp_sock = new pollfd;
+const int MAX_RECEIVED_MESSAGE_LENGTH = 20;
+struct addrinfo tcp_addr_hints;
+struct addrinfo* tcp_addr_result;
 
-/*================================================= */
+/*===================== Client logic  =========================== */
 int8_t current_turn_direction = 0;
 uint32_t current_game_id = 0;
 uint32_t next_expected_event_no = 0; /* TODO manage the events */
-const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms */
+const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms TODO */
 Clock* global_clock;
 /* ================================================ */
 
 
+void init_connection_with_gui() {
+    // 'converting' host/port in string to struct addrinfo
+    memset(&tcp_addr_hints, 0, sizeof(struct addrinfo));
+    tcp_addr_hints.ai_family = AF_INET; // IPv4
+    tcp_addr_hints.ai_socktype = SOCK_STREAM;
+    tcp_addr_hints.ai_protocol = IPPROTO_TCP;
+    int err = getaddrinfo(ui_server_name, get_string_of_32bit(ui_server_port), &tcp_addr_hints, &tcp_addr_result);
+    if (err == EAI_SYSTEM) { // system error
+        syserr("getaddrinfo: %s", gai_strerror(err));
+    }
+    else if (err != 0) { // other error (host not found, etc.)
+        fatal("getaddrinfo: %s", gai_strerror(err));
+    }
+
+    // initialize socket according to getaddrinfo results
+    tcp_sock->fd = socket(tcp_addr_result->ai_family, tcp_addr_result->ai_socktype, tcp_addr_result->ai_protocol);
+    if (tcp_sock->fd < 0)
+        syserr("socket");
+
+    // connect socket to the server
+    if (connect(tcp_sock->fd, tcp_addr_result->ai_addr, tcp_addr_result->ai_addrlen) < 0)
+        syserr("connect");
+
+    freeaddrinfo(tcp_addr_result);
+    int flag = 1;
+    err = setsockopt(tcp_sock->fd,            /* socket affected */
+                            IPPROTO_TCP,     /* set option at TCP level */
+                            TCP_NODELAY,     /* name of option */
+                            (char *) &flag,  /* the cast is historical cruft */
+                            sizeof(int));    /* length of option value */
+
+    if (err < 0)
+        syserr("NO_DELAY error");
+}
+
+void receive_tcp() {
+    char* buffer = new char[MAX_RECEIVED_MESSAGE_LENGTH];
+    memset(buffer, 0, MAX_RECEIVED_MESSAGE_LENGTH);
+    rcv_len = read(tcp_sock->fd, buffer, MAX_RECEIVED_MESSAGE_LENGTH);
+    if (rcv_len < 0) {
+        //syserr("read tcp");
+        cout << " WRONG TCP received!!" << endl;
+    }
+    /*if (rcv_len == 0)
+        syserr("gui disconnected");
+    */
+    printf("read from socket: %zd bytes: %s\n", rcv_len, buffer);
+
+    current_turn_direction = take_direction_from_gui_message(buffer, (size_t)rcv_len);
+}
+
+/* send tcp with information about the event to gui */
+void send_tcp(char* data, size_t len) {
+    cout << "WE ARE SUPPOSED TO SEND" << data << " " << len << endl;
+    ssize_t send_len = write(tcp_sock->fd, data, len);
+    if (send_len < 1)
+        cout << "WE SENT BAD TCP. WHY??" << endl;
+
+    if (send_len != ssize_t(len)) {
+        syserr("partial / failed write");
+    }
+    printf("SENT TO GUI %s\n", data);
+
+}
+
 void init_connection_with_server() {
 
     // 'converting' host/port in string to struct addrinfo
-    (void) memset(&addr_hints, 0, sizeof(struct addrinfo));
-    addr_hints.ai_family = AF_INET; // IPv4
-    addr_hints.ai_socktype = SOCK_DGRAM;
-    addr_hints.ai_protocol = IPPROTO_UDP;
-    addr_hints.ai_flags = 0;
-    addr_hints.ai_addrlen = 0;
-    addr_hints.ai_addr = NULL;
-    addr_hints.ai_canonname = NULL;
-    addr_hints.ai_next = NULL;
-    if (getaddrinfo(game_server_name, NULL, &addr_hints, &addr_result) != 0) {
+    (void) memset(&udp_addr_hints, 0, sizeof(struct addrinfo));
+    udp_addr_hints.ai_family = AF_INET; // IPv4
+    udp_addr_hints.ai_socktype = SOCK_DGRAM;
+    udp_addr_hints.ai_protocol = IPPROTO_UDP;
+    udp_addr_hints.ai_flags = 0;
+    udp_addr_hints.ai_addrlen = 0;
+    udp_addr_hints.ai_addr = NULL;
+    udp_addr_hints.ai_canonname = NULL;
+    udp_addr_hints.ai_next = NULL;
+    if (getaddrinfo(game_server_name, NULL, &udp_addr_hints, &udp_addr_result) != 0) {
         syserr("getaddrinfo");
     }
 
     my_address.sin_family = AF_INET; // IPv4
     my_address.sin_addr.s_addr =
-            ((struct sockaddr_in *) (addr_result->ai_addr))->sin_addr.s_addr; // address IP
+            ((struct sockaddr_in *) (udp_addr_result->ai_addr))->sin_addr.s_addr; // address IP
 
     my_address.sin_port = htons((uint16_t) game_server_port); // port from the command line
-    freeaddrinfo(addr_result);
+    freeaddrinfo(udp_addr_result);
 
-    sock = socket(PF_INET, SOCK_DGRAM, 0);
-    if (sock < 0)
+
+    udp_sock->fd = socket(PF_INET, SOCK_DGRAM, 0); // creating IPv4 UDP socket
+    if (udp_sock->fd < 0)
         syserr("socket");
+
 
     sflags = 0;
     rcva_len = (socklen_t) sizeof(my_address);
 }
 
 void send_datagram(char *datagram, size_t len) {
-    snd_len = sendto(sock, datagram, len, sflags,
+    snd_len = sendto(udp_sock->fd, datagram, len, sflags,
                      (struct sockaddr *) &my_address, rcva_len);
     if (snd_len != (ssize_t) len) {
         syserr("partial/failed write");
     }
 }
 
+/* Is any input on udp */
+bool udp_listen() {
+    udp_sock->events = POLLIN;
+    udp_sock->revents = 0;
+    return poll(udp_sock, 1, TIMEOUT_MILLISECS) > 0;
+}
+
+/* Is any input on tcp */
+bool tcp_listen() {
+    tcp_sock->events = POLLIN;
+    tcp_sock->revents = 0;
+    return poll(tcp_sock, 1, TIMEOUT_MILLISECS) > 0;
+}
+
 Datagram* receive_datagram() {
     char* buffer = new char[DatagramServerToClient::MAX_DATAGRAM_SIZE];
-    (void) memset(buffer, 0, sizeof(buffer));
+    (void) memset(buffer, 0, DatagramServerToClient::MAX_DATAGRAM_SIZE);
     flags = 0;
-    size_t len = (size_t) sizeof(buffer) - 1;
+    size_t len = (size_t) DatagramServerToClient::MAX_DATAGRAM_SIZE - 1;
     rcva_len = (socklen_t) sizeof(srvr_address);
-    rcv_len = recvfrom(sock, buffer, len, flags,
+    rcv_len = recvfrom(udp_sock->fd, buffer, len, flags,
                        (struct sockaddr *) &srvr_address, &rcva_len);
 
     if (rcv_len < 0)
-        syserr("read");
+        syserr("read udp");
+
+    cout << "RECEIVED DATAGRAM length " << rcv_len << endl;
 
     return new Datagram(buffer, (size_t)rcv_len);
 }
@@ -149,6 +241,25 @@ void init_clock() {
     global_clock = new Clock(SEND_INTERVAL_IN_MICROSECS);
 }
 
+/* Process received datagram and send information to gui */
+void process_datagram(Datagram* datagram) {
+    size_t len = datagram->get_len();
+    char* raw_datagram = datagram->get_data();
+    DatagramServerToClient* datagramServerToClient = DatagramServerToClient::parse_datagram(raw_datagram, len);
+
+    cout << datagramServerToClient->get_game_id() << endl;
+    cout << datagramServerToClient->get_events().size() << " RECEIVED EVENTS" << endl;
+
+    for (Event* event : datagramServerToClient->get_events()) {
+        cout << " EVENT SENT TO GUI " << event->event_raw_data_len() << endl;
+        Datagram* tcp_data = message_sent_to_gui(event, player_name);
+        send_tcp(tcp_data->get_data(), tcp_data->get_len());
+        next_expected_event_no = event->get_event_no() + 1;
+    }
+
+    /* TODO game_id, events_order, new_game, game_over */
+}
+
 /**
  * Datagram made of current data
  */
@@ -164,8 +275,8 @@ int main(int argc, char* argv[]) {
     parse_arguments(argc, argv);
     print_arguments();
     init_connection_with_server();
+    init_connection_with_gui();
     init_clock();
-
     while (true) {
         if (global_clock->end_turn()) {
             Datagram* datagram = datagram_to_send();
@@ -173,7 +284,14 @@ int main(int argc, char* argv[]) {
             global_clock->next_turn();
         }
         else { /* receive from server or communicate with gui */
-
+            if (udp_listen()) {
+                Datagram* received_datagram = receive_datagram();
+                process_datagram(received_datagram);
+            }
+            /* Communicate with gui */
+            if (tcp_listen()) {
+                receive_tcp();
+            }
         }
     }
 }

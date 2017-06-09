@@ -52,7 +52,7 @@ public:
     /**
     * @return if true then server listens datagrams, otherwise it broadcasts datagrams to clients.
     */
-    bool listen();
+    bool udp_listen();
 
     void receive_udp();
 

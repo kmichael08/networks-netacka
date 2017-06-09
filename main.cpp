@@ -5,7 +5,7 @@ int main(int argc, char* argv[]) {
     //server.print_arguments();
 
     while (true) {
-        if (server.listen()) { /* receive udp */
+        if (server.udp_listen()) { /* receive udp */
             server.receive_udp();
         }
 
