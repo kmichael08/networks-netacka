@@ -44,6 +44,7 @@ uint32_t current_game_id = 0;
 uint32_t next_expected_event_no = 0; /* TODO manage the events */
 const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms TODO */
 Clock* global_clock;
+vector<char*> current_players_names; /* TODO clear with every new game */
 /* ================================================ */
 
 
@@ -87,12 +88,11 @@ void receive_tcp() {
     memset(buffer, 0, MAX_RECEIVED_MESSAGE_LENGTH);
     rcv_len = read(tcp_sock->fd, buffer, MAX_RECEIVED_MESSAGE_LENGTH);
     if (rcv_len < 0) {
-        //syserr("read tcp");
-        cout << " WRONG TCP received!!" << endl;
+        syserr("read tcp");
     }
-    /*if (rcv_len == 0)
+    if (rcv_len == 0)
         syserr("gui disconnected");
-    */
+
     printf("read from socket: %zd bytes: %s\n", rcv_len, buffer);
 
     current_turn_direction = take_direction_from_gui_message(buffer, (size_t)rcv_len);
@@ -102,8 +102,8 @@ void receive_tcp() {
 void send_tcp(char* data, size_t len) {
     cout << "WE ARE SUPPOSED TO SEND" << data << " " << len << endl;
     ssize_t send_len = write(tcp_sock->fd, data, len);
-    if (send_len < 1)
-        cout << "WE SENT BAD TCP. WHY??" << endl;
+    if (send_len < 0)
+        syserr("read");
 
     if (send_len != ssize_t(len)) {
         syserr("partial / failed write");
@@ -251,9 +251,21 @@ void process_datagram(Datagram* datagram) {
     cout << datagramServerToClient->get_events().size() << " RECEIVED EVENTS" << endl;
 
     for (Event* event : datagramServerToClient->get_events()) {
-        cout << " EVENT SENT TO GUI " << event->event_raw_data_len() << endl;
-        Datagram* tcp_data = message_sent_to_gui(event, player_name);
-        send_tcp(tcp_data->get_data(), tcp_data->get_len());
+        if (event->get_event_type() == 0) {
+            current_players_names.clear();
+            NewGame* newGame = (NewGame*) event;
+            cout << "BEFORE putting names" << endl;
+            for (char* name: newGame->get_players_name_list())
+                current_players_names.push_back(name);
+            cout << "AFTER putting names" << endl;
+        }
+        Datagram* tcp_data = message_sent_to_gui(event, current_players_names);
+        if (tcp_data == nullptr) {
+            init_connection_with_gui();
+        }
+        else {
+            send_tcp(tcp_data->get_data(), tcp_data->get_len());
+        }
         next_expected_event_no = event->get_event_no() + 1;
     }
 
@@ -282,6 +294,7 @@ int main(int argc, char* argv[]) {
             Datagram* datagram = datagram_to_send();
             send_datagram(datagram->get_data(), datagram->get_len());
             global_clock->next_turn();
+            current_turn_direction = 0;
         }
         else { /* receive from server or communicate with gui */
             if (udp_listen()) {

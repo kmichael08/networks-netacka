@@ -156,20 +156,16 @@ void Server::receive_udp() {
     cout << players.size() <<  " PL SP " << spectators.size() << endl;
 
     if (player == nullptr) { /* First time we hear from the player */
-        cout << "FIRST TIME" << endl;
         /* Players number exceeded or name already exists */
         if (current_players_number() == MAX_CLIENTS || name_exist(datagram->get_player_name())) {
-            cout << "ZDZIWKO "  << current_players_number() << endl;
             return;
         }
         else
         {
-            cout << "ADD " << endl;
             player = add_new_player(datagram, client_address);
         }
     }
     else { /* Existing player */
-        cout << "WE KNOW YOU!" << endl;
         player->update();
         /* if the session id is larger than initial, the player is reseted TODO test it */
         if (datagram->get_session_id() > player->get_session_id()) {
@@ -179,7 +175,6 @@ void Server::receive_udp() {
 
     if (!datagram->is_valid()) {}
     else {
-        cout << "VALID_DATAGRAM" << endl;
         if (active_game) {
             cout << "ACTIVE GAME" << endl;
             send_events(datagram->get_next_expected_event_no(), player);
@@ -194,8 +189,6 @@ void Server::receive_udp() {
 
 Player* Server::add_new_player(DatagramClientToServer *datagram, sockaddr_in *client_address) {
     char* name = datagram->get_player_name();
-
-    cout << " IM ADDING" << endl;
 
     Player* player = new Player(datagram->get_session_id(), name, client_address);
 

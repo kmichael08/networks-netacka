@@ -25,11 +25,12 @@ Datagram* datagram_out_of_string(string& mess) {
     return new Datagram(message, mess.length() + 1);
 }
 
-Datagram* message_sent_to_gui(Event* event, char* player_name) {
+Datagram* message_sent_to_gui(Event* event, vector<char*>& players_names) {
     uint8_t event_type = event->get_event_type();
     string mess;
     NewGame* newGame = nullptr;
     Pixel* pixel = nullptr;
+    PlayerEliminated* playerEliminated = nullptr;
 
     switch (event_type) {
         case 0:
@@ -51,11 +52,12 @@ Datagram* message_sent_to_gui(Event* event, char* player_name) {
             mess.append(" ");
             mess.append(get_string_of_32bit(pixel->get_y()));
             mess.append(" ");
-            mess.append(player_name);
+            mess.append(players_names.at(pixel->get_player_number()));
             return datagram_out_of_string(mess);
         case 2:
+            playerEliminated = (PlayerEliminated*) event;
             mess.append("PLAYER_ELIMINATED ");
-            mess.append(player_name);
+            mess.append(players_names.at(playerEliminated->get_player_number()));
             return datagram_out_of_string(mess);
         case 3:
             return nullptr;

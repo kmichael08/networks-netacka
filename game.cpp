@@ -98,15 +98,21 @@ bool Game::game_ended() {
 
 void Game::move_snake(int8_t turn_direction, Player *player) {
     uint8_t player_num = player->get_player_number();
+    uint32_t initial_x = (uint32_t)player->get_headx();
+    uint32_t initial_y = (uint32_t)player->get_heady();
     player->turn(turn_direction, turning_speed);
     player->move();
     double x = player->get_headx();
     double y = player->get_heady();
+    uint32_t current_x = (uint32_t)x;
+    uint32_t current_y = (uint32_t)y;
+    if (current_x == initial_x && current_y == initial_y) /* Position has not changed */
+        return;
 
     if (!board->inside_board(x, y)) {
         add_player_eliminated(player_num);
     }
-    if (board->is_occupied(uint32_t(x), (uint32_t)(y))) {
+    if (board->is_occupied(current_x, current_y)) {
         add_player_eliminated(player_num);
     }
     else {
