@@ -68,13 +68,11 @@ char* PlayerEliminated::raw_data() {
 }
 
 Event* PlayerEliminated::parse_single_event_data(uint32_t event_no, char *event_data, size_t event_data_length) {
-    cout << "PL ELIMINATED___________________________________" << endl;
     if (event_data_length == 1) {
         uint8_t player_num;
         memcpy(&player_num, event_data, 1);
         return new PlayerEliminated(event_no, player_num);
     }
-    cout << "FAIL IN PL EL___________________________________" << endl;
     return nullptr;
 }
 
@@ -83,7 +81,6 @@ char* GameOver::raw_data() {
 }
 
 Event *GameOver::parse_single_event_data(uint32_t event_no, size_t event_data_length) {
-    cout << event_data_length << " PARSE SINGLE EVENT DATA" << endl;
     if (event_data_length == 0)
         return new GameOver(event_no);
     return nullptr;

@@ -73,7 +73,6 @@ bool Board::inside_board(double x, double y) {
 Board* Game::get_board() { return board; }
 
 void Game::add_game_over() {
-    cout << "GAME OVER ADDED" << endl;
     all_events.push_back(new GameOver((uint32_t)all_events.size()));
 }
 
@@ -94,7 +93,6 @@ bool Game::game_ended() {
     int players_alive = 0;
     for (Player* player: players)
         players_alive += player->is_alive();
-    cout << players_alive << "PL ALIVE" << endl;
     return players_alive <= 1;
 }
 

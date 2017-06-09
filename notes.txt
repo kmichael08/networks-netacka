@@ -1,8 +1,5 @@
--length of the datagrams '\0' in the end
--add poll, select? how to do the timeout? how not to block things
 -unit tests - IMPORTANT
 -mistakes from the first task
--how to test the solution, how to test parts separately
 -read questions from szkopul, read the task description in detail
 -errors handling
 -makefile

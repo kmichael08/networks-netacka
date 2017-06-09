@@ -94,8 +94,6 @@ void receive_tcp() {
     if (rcv_len == 0)
         syserr("gui disconnected");
 
-    //printf("read from socket: %zd bytes: %s\n", rcv_len, buffer);
-
     current_turn_direction = take_direction_from_gui_message(buffer, (size_t)rcv_len);
 }
 
@@ -108,7 +106,6 @@ void send_tcp(char* data, size_t len) {
     if (send_len != ssize_t(len)) {
         syserr("partial / failed write");
     }
-    printf("SENT TO GUI %s\n", data);
 
 }
 
@@ -179,8 +176,6 @@ Datagram* receive_datagram() {
     if (rcv_len < 0)
         syserr("read udp");
 
-    //cout << "RECEIVED DATAGRAM length " << rcv_len << endl;
-
     return new Datagram(buffer, (size_t)rcv_len);
 }
 
@@ -247,15 +242,12 @@ void process_datagram(Datagram* datagram) {
     char* raw_datagram = datagram->get_data();
     DatagramServerToClient* datagramServerToClient = DatagramServerToClient::parse_datagram(raw_datagram, len);
 
-    //cout << datagramServerToClient->get_game_id() << endl;
-    //cout << datagramServerToClient->get_events().size() << " RECEIVED EVENTS" << endl;
 
     for (Event* event : datagramServerToClient->get_events()) {
         if (event->get_event_type() == 0) {
             current_players_names.clear();
             NewGame* newGame = (NewGame*) event;
             active_game = true;
-            cout << "ACTIVATE GAME ___________________" << endl;
             current_game_id = datagramServerToClient->get_game_id();
 
             for (char* name: newGame->get_players_name_list())
@@ -265,7 +257,6 @@ void process_datagram(Datagram* datagram) {
 
         Datagram* tcp_data = message_sent_to_gui(event, current_players_names);
         if (event->get_event_type() == 3) { /* event game_over */
-            cout << "GAME OVER" << endl;
             active_game = false;
             next_expected_event_no = 0;
         }
@@ -277,7 +268,6 @@ void process_datagram(Datagram* datagram) {
         next_expected_event_no = event->get_event_no() + 1;
     }
 
-    /* TODO game_id, events_order, new_game, game_over */
 }
 
 /**

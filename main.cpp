@@ -17,7 +17,6 @@ int main(int argc, char* argv[]) {
             server.send_to_all(); /* send all recent communicates */
 
             if (server.get_current_game()->game_ended()) {
-                cout << "FINISH GAME" << endl;
                 server.get_current_game()->end_game();
                 server.finish_game();
             }
@@ -28,7 +27,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-        //server.disconnect_not_responding_users();
+        server.disconnect_not_responding_users();
     }
 
 }

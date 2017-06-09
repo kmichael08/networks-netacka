@@ -94,7 +94,6 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
 }
 
 void Server::new_game() {
-    cout << "STARTING GAME ____________________________________________" << endl;
     first_event_not_sent_to_all = 0;
     uint32_t game_id = next_random_number();
     vector<char*> players_names;
@@ -103,8 +102,6 @@ void Server::new_game() {
 
     for (Player* player: current_players)
         players_names.push_back(player->get_name());
-
-    /* TODO free previous game */
 
     Game* game = new Game(game_id, width, height, current_players, turn_time(), turning_speed);
 
@@ -133,7 +130,6 @@ void Server::send_udp(Player* player, char* datagram, size_t len) {
     ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
                              (sockaddr *) player->get_client_address(), snda_len);
 
-    //cout << "SERVER SENDS UPD len " << snd_len << endl;
 
     if (snd_len < 0 || size_t(snd_len) != len)
         syserr("error on sending datagram to client socket");
@@ -154,11 +150,7 @@ void Server::receive_udp() {
 
     DatagramClientToServer* datagram = new DatagramClientToServer(buffer, len);
 
-    //cout << datagram->is_valid() << " " << (long)(datagram->get_turn_direction()) << " " << datagram->get_player_name() << endl;
-
     Player* player = get_player(client_address);
-
-    //cout << players.size() <<  " PL SP " << spectators.size() << endl;
 
     if (player == nullptr) { /* First time we hear from the player */
         /* Players number exceeded or name already exists */
@@ -228,12 +220,6 @@ void Server::send_events(uint32_t first_event, Player *player) {
 
     vector<Event*> events_to_send = current_game->get_events_from(first_event);
 
-    /**** JUST CHECKING */
-    for (Event* event : events_to_send)
-        if (event->get_event_type() == 0)
-            cout << "YUPI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11" << endl;
-
-
     DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
 
     for (Datagram* datagram : data->datagrams()) {
@@ -287,7 +273,6 @@ Game *Server::get_current_game() {
 
 void Server::finish_game() {
     active_game = false;
-    cout << "FINISHING GAME" << endl;
     send_to_all(); /* send a game_over message */
 }
 
