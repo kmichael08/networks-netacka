@@ -1,15 +1,15 @@
 -mistakes from the first task
--read the task description in detail
+-read the task description in detail OK
 -errors handling
 -makefile
 -ipv6
--test on students, MUST WORK WITH TEST SERVER
+-test on students, MUST WORK WITH TEST SERVER OK
 -comments
 -send without duplicates, in order
 -test, understand everything
--play with different parameters
--asserty, TODOS
+-play with different parameters OK
+-asserty, TODOS OK
 -game_id
--more players
--what if one event is larger than 512? what happens now?
+-more players OK
+-what if one event is larger than 512? what happens now? OK
 -spectator

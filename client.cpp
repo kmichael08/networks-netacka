@@ -42,10 +42,10 @@ struct addrinfo* tcp_addr_result;
 int8_t current_turn_direction = 0;
 uint32_t current_game_id = 0;
 bool active_game = 0;
-uint32_t next_expected_event_no = 0; /* TODO manage the events */
-const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms TODO */
+uint32_t next_expected_event_no = 0;
+const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms */
 Clock* global_clock;
-vector<char*> current_players_names; /* TODO clear with every new game */
+vector<char*> current_players_names; /* cleared with every new game */
 /* ================================================ */
 
 
