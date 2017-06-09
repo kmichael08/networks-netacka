@@ -46,6 +46,7 @@ uint32_t next_expected_event_no = 0;
 const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms */
 Clock* global_clock;
 vector<char*> current_players_names; /* cleared with every new game */
+int64_t last_sent_event_number = -1; /* number of the last event that was sent to the gui */
 /* ================================================ */
 
 
@@ -248,12 +249,14 @@ void process_datagram(Datagram* datagram) {
             current_players_names.clear();
             NewGame* newGame = (NewGame*) event;
             active_game = true;
+            last_sent_event_number = -1;
             current_game_id = datagramServerToClient->get_game_id();
 
             for (char* name: newGame->get_players_name_list())
                 current_players_names.push_back(name);
         }
-
+        if (current_game_id != datagramServerToClient->get_game_id())
+            return; /* previous game's id */
 
         Datagram* tcp_data = message_sent_to_gui(event, current_players_names);
         if (event->get_event_type() == 3) { /* event game_over */
@@ -262,7 +265,11 @@ void process_datagram(Datagram* datagram) {
         }
 
         else if (active_game) { /* skip messages from the previous game */
-            send_tcp(tcp_data->get_data(), tcp_data->get_len());
+            int64_t current_event_number = (int64_t)event->get_event_no();
+            if (current_event_number > last_sent_event_number) {
+                send_tcp(tcp_data->get_data(), tcp_data->get_len());
+                last_sent_event_number = current_event_number; /* set last sent for current event */
+            }
         }
 
         next_expected_event_no = event->get_event_no() + 1;

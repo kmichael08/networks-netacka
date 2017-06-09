@@ -5,11 +5,11 @@
 -ipv6
 -test on students, MUST WORK WITH TEST SERVER OK
 -comments
--send without duplicates, in order
+-send without duplicates, in order OK
 -test, understand everything
 -play with different parameters OK
 -asserty, TODOS OK
--game_id
+-game_id OK
 -more players OK
 -what if one event is larger than 512? what happens now? OK
 -spectator
