@@ -94,6 +94,8 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
 }
 
 void Server::new_game() {
+    cout << "STARTING GAME ____________________________________________" << endl;
+    first_event_not_sent_to_all = 0;
     uint32_t game_id = next_random_number();
     vector<char*> players_names;
     vector<Player*> current_players(players); /* Copy players, only the ones, that were present before start of the game */
@@ -101,6 +103,8 @@ void Server::new_game() {
 
     for (Player* player: current_players)
         players_names.push_back(player->get_name());
+
+    /* TODO free previous game */
 
     Game* game = new Game(game_id, width, height, current_players, turn_time(), turning_speed);
 
@@ -125,10 +129,11 @@ bool Server::udp_listen()  {
 
 void Server::send_udp(Player* player, char* datagram, size_t len) {
     int sflags = 0;
+
     ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
                              (sockaddr *) player->get_client_address(), snda_len);
 
-    cout << "SERVER SENDS UPD len " << snd_len << endl;
+    //cout << "SERVER SENDS UPD len " << snd_len << endl;
 
     if (snd_len < 0 || size_t(snd_len) != len)
         syserr("error on sending datagram to client socket");
@@ -149,11 +154,11 @@ void Server::receive_udp() {
 
     DatagramClientToServer* datagram = new DatagramClientToServer(buffer, len);
 
-    cout << datagram->is_valid() << " " << (long)(datagram->get_turn_direction()) << " " << datagram->get_player_name() << endl;
+    //cout << datagram->is_valid() << " " << (long)(datagram->get_turn_direction()) << " " << datagram->get_player_name() << endl;
 
     Player* player = get_player(client_address);
 
-    cout << players.size() <<  " PL SP " << spectators.size() << endl;
+    //cout << players.size() <<  " PL SP " << spectators.size() << endl;
 
     if (player == nullptr) { /* First time we hear from the player */
         /* Players number exceeded or name already exists */
@@ -176,7 +181,6 @@ void Server::receive_udp() {
     if (!datagram->is_valid()) {}
     else {
         if (active_game) {
-            cout << "ACTIVE GAME" << endl;
             send_events(datagram->get_next_expected_event_no(), player);
             player->set_current_turn_direction(datagram->get_turn_direction());
         }
@@ -221,16 +225,20 @@ void Server::send_events(uint32_t first_event, Player *player) {
     if (first_event >= current_game->get_events_number()) /* there is less event */
         return;
 
-    cout << " SENDING EVENTS" << endl;
 
     vector<Event*> events_to_send = current_game->get_events_from(first_event);
 
-    cout << events_to_send.size() << " NUMBER OF SENT" << endl;
+    /**** JUST CHECKING */
+    for (Event* event : events_to_send)
+        if (event->get_event_type() == 0)
+            cout << "YUPI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11" << endl;
+
 
     DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
 
-    for (Datagram* datagram : data->datagrams())
+    for (Datagram* datagram : data->datagrams()) {
         send_udp(player, datagram->get_data(), datagram->get_len());
+    }
 
 }
 
@@ -260,8 +268,9 @@ bool Server::name_exist(char* name) {
 }
 
 void Server::send_to_all() {
-    for (Player* player: players)
+    for (Player* player: players) {
         send_events(first_event_not_sent_to_all, player);
+    }
     for (Player* player: spectators)
         send_events(first_event_not_sent_to_all, player);
 
@@ -278,6 +287,8 @@ Game *Server::get_current_game() {
 
 void Server::finish_game() {
     active_game = false;
+    cout << "FINISHING GAME" << endl;
+    send_to_all(); /* send a game_over message */
 }
 
 bool Server::all_players_ready() const {

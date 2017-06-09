@@ -11,7 +11,9 @@ Datagram* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t s
     memcpy(datagram, &net_game_id, 4);
     current_position += 4;
     for (VEIT iter = start; iter != end; iter++) {
+        cout << (unsigned long)(*iter)->get_event_type() << " TYPE OF SENT EVENT" << endl;
         uint32_t event_length = (*iter)->event_raw_data_len();
+        cout << event_length << " EVENT LENGTH " << endl;
         memcpy(datagram + current_position, (*iter)->event_raw_data(), event_length);
         current_position += event_length;
     }

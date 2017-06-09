@@ -68,12 +68,13 @@ char* PlayerEliminated::raw_data() {
 }
 
 Event* PlayerEliminated::parse_single_event_data(uint32_t event_no, char *event_data, size_t event_data_length) {
+    cout << "PL ELIMINATED___________________________________" << endl;
     if (event_data_length == 1) {
         uint8_t player_num;
         memcpy(&player_num, event_data, 1);
         return new PlayerEliminated(event_no, player_num);
     }
-
+    cout << "FAIL IN PL EL___________________________________" << endl;
     return nullptr;
 }
 
@@ -82,6 +83,7 @@ char* GameOver::raw_data() {
 }
 
 Event *GameOver::parse_single_event_data(uint32_t event_no, size_t event_data_length) {
+    cout << event_data_length << " PARSE SINGLE EVENT DATA" << endl;
     if (event_data_length == 0)
         return new GameOver(event_no);
     return nullptr;
@@ -177,7 +179,7 @@ vector<Event *> &Event::parse_events(char *event_data, size_t len) {
 
     size_t remained_length = len;
     /* 13 bytes for data without event_data */
-    while (current_ptr != event_data + len && remained_length > 13) {
+    while (current_ptr != event_data + len && remained_length >= 13) {
         memcpy(&events_len, current_ptr, 4);
         current_ptr += 4;
         remained_length -= 4;

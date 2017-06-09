@@ -41,6 +41,7 @@ struct addrinfo* tcp_addr_result;
 /*===================== Client logic  =========================== */
 int8_t current_turn_direction = 0;
 uint32_t current_game_id = 0;
+bool active_game = 0;
 uint32_t next_expected_event_no = 0; /* TODO manage the events */
 const uint64_t SEND_INTERVAL_IN_MICROSECS = 20000; /* 20ms TODO */
 Clock* global_clock;
@@ -93,14 +94,13 @@ void receive_tcp() {
     if (rcv_len == 0)
         syserr("gui disconnected");
 
-    printf("read from socket: %zd bytes: %s\n", rcv_len, buffer);
+    //printf("read from socket: %zd bytes: %s\n", rcv_len, buffer);
 
     current_turn_direction = take_direction_from_gui_message(buffer, (size_t)rcv_len);
 }
 
 /* send tcp with information about the event to gui */
 void send_tcp(char* data, size_t len) {
-    cout << "WE ARE SUPPOSED TO SEND" << data << " " << len << endl;
     ssize_t send_len = write(tcp_sock->fd, data, len);
     if (send_len < 0)
         syserr("read");
@@ -179,7 +179,7 @@ Datagram* receive_datagram() {
     if (rcv_len < 0)
         syserr("read udp");
 
-    cout << "RECEIVED DATAGRAM length " << rcv_len << endl;
+    //cout << "RECEIVED DATAGRAM length " << rcv_len << endl;
 
     return new Datagram(buffer, (size_t)rcv_len);
 }
@@ -247,25 +247,33 @@ void process_datagram(Datagram* datagram) {
     char* raw_datagram = datagram->get_data();
     DatagramServerToClient* datagramServerToClient = DatagramServerToClient::parse_datagram(raw_datagram, len);
 
-    cout << datagramServerToClient->get_game_id() << endl;
-    cout << datagramServerToClient->get_events().size() << " RECEIVED EVENTS" << endl;
+    //cout << datagramServerToClient->get_game_id() << endl;
+    //cout << datagramServerToClient->get_events().size() << " RECEIVED EVENTS" << endl;
 
     for (Event* event : datagramServerToClient->get_events()) {
         if (event->get_event_type() == 0) {
             current_players_names.clear();
             NewGame* newGame = (NewGame*) event;
-            cout << "BEFORE putting names" << endl;
+            active_game = true;
+            cout << "ACTIVATE GAME ___________________" << endl;
+            current_game_id = datagramServerToClient->get_game_id();
+
             for (char* name: newGame->get_players_name_list())
                 current_players_names.push_back(name);
-            cout << "AFTER putting names" << endl;
         }
+
+
         Datagram* tcp_data = message_sent_to_gui(event, current_players_names);
-        if (tcp_data == nullptr) {
-            init_connection_with_gui();
+        if (event->get_event_type() == 3) { /* event game_over */
+            cout << "GAME OVER" << endl;
+            active_game = false;
+            next_expected_event_no = 0;
         }
-        else {
+
+        else if (active_game) { /* skip messages from the previous game */
             send_tcp(tcp_data->get_data(), tcp_data->get_len());
         }
+
         next_expected_event_no = event->get_event_no() + 1;
     }
 
