@@ -35,6 +35,7 @@
 #define DEF_LIBCRC_CHECKSUM_H
 
 #include <stdint.h>
+#include <cstddef>
 
 /*
  * #define CRC_START_xxxx
