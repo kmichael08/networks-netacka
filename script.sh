@@ -5,5 +5,5 @@
 sleep 1
 ./cmake-build-debug/siktacka-client janusz localhost localhost:1501 &
 ./cmake-build-debug/siktacka-client marian localhost localhost:1500 &
-./cmake-build-debug/siktacka-client "" localhost localhost:1502 &
+./cmake-build-debug/siktacka-client david localhost localhost:1502 &
 

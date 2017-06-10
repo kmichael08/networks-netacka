@@ -29,7 +29,7 @@ private:
 
     void parse_arguments(int argc, char* argv[]);
 
-    uint64_t turn_time(); /* In microseconds */
+    uint64_t get_turn_time(); /* In microseconds */
     pollfd* sock;
     struct sockaddr_in server_address;
     struct sockaddr_in client_address;
@@ -38,12 +38,13 @@ private:
     Game* current_game;
     uint32_t first_event_not_sent_to_all = 0;
     bool active_game = 0;
+    uint64_t turn_time;
 public:
     Server(int argc, char* argv[]);
 
     void print_arguments();
 
-    /* Init the new game, with a given parameters */
+    /* Init the new game. */
     void new_game();
 
     /* Init starting positions and directions of the players */
@@ -86,7 +87,7 @@ public:
     /* check if the name already exists, if not empty */
     bool name_exist(char* name);
 
-    void send_to_all();
+    void send_to_all(); /* send all recent events to everyone listening */
 
     bool is_game_active() const;
 

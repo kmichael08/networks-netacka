@@ -65,7 +65,7 @@ Server::Server(int argc, char **argv) {
         syserr("bind");
 
     snda_len = (socklen_t) sizeof(client_address);
-
+    turn_time = uint64_t(1000000 / speed); /* in microseconds */
 }
 
 /* Comparator to sort players by their names lexicographically */
@@ -103,7 +103,7 @@ void Server::new_game() {
     for (Player* player: current_players)
         players_names.push_back(player->get_name());
 
-    Game* game = new Game(game_id, width, height, current_players, turn_time(), turning_speed);
+    Game* game = new Game(game_id, width, height, current_players, get_turn_time(), turning_speed);
 
     game->add_new_game(width, height, players_names);
 
@@ -114,8 +114,8 @@ void Server::new_game() {
     current_game = game;
 }
 
-uint64_t Server::turn_time() {
-    return 1000000 / speed;
+uint64_t Server::get_turn_time() {
+    return turn_time;
 }
 
 bool Server::udp_listen()  {
@@ -132,7 +132,7 @@ void Server::send_udp(Player* player, char* datagram, size_t len) {
 
 
     if (snd_len < 0 || size_t(snd_len) != len)
-        syserr("error on sending datagram to client socket");
+        printf("error on sending datagram to client socket\n");
 }
 
 int Server::current_players_number() {
@@ -164,7 +164,7 @@ void Server::receive_udp() {
     }
     else { /* Existing player */
         player->update();
-        /* if the session id is larger than initial, the player is reseted TODO test it */
+        /* if the session id is larger than initial, the player is reseted */
         if (datagram->get_session_id() > player->get_session_id()) {
             reset_player(player, datagram->no_player_name());
         }
@@ -177,7 +177,7 @@ void Server::receive_udp() {
             player->set_current_turn_direction(datagram->get_turn_direction());
         }
         else {
-            if (datagram->get_turn_direction() != 0) /* pressing left/right gives a singal of readiness */
+            if (datagram->get_turn_direction() != 0) /* pressing left/right gives a signal of readiness */
                 player->reborn();
         }
     }

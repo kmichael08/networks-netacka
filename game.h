@@ -83,7 +83,7 @@ public:
     Board* get_board();
     /* true - less than 2 players left, otherwise false */
     bool game_ended();
-    /* get all events starting with a given one TODO check copying and test it */
+    /* get all events starting with a given one */
     vector<Event*> get_events_from(uint32_t first_event_no);
     uint32_t get_game_id() const;
     uint32_t get_events_number() const;
