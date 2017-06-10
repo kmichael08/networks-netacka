@@ -4,14 +4,15 @@
 
 int8_t take_direction_from_gui_message(char* message, size_t len) {
     len--; /* Ignore last character */
-    if (strncmp(message, "LEFT_KEY_DOWN", len) == 0)
+    if (strncmp(message, "LEFT_KEY_DOWN", len) == 0) {
         return -1;
+	}
     if (strncmp(message, "LEFT_KEY_UP", len) == 0)
-        return -1;
+        return 0;
     if (strncmp(message, "RIGHT_KEY_DOWN", len) == 0)
         return 1;
     if (strncmp(message, "RIGHT_KEY_UP", len) == 0)
-        return 1;
+        return 0;
     return 0;
 }
 

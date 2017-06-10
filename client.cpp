@@ -249,6 +249,7 @@ void process_datagram(Datagram* datagram) {
             current_players_names.clear();
             NewGame* newGame = (NewGame*) event;
             active_game = true;
+            current_turn_direction = 0;
             last_sent_event_number = -1;
             current_game_id = datagramServerToClient->get_game_id();
 
@@ -299,17 +300,18 @@ int main(int argc, char* argv[]) {
             Datagram* datagram = datagram_to_send();
             send_datagram(datagram->get_data(), datagram->get_len());
             global_clock->next_turn();
-            current_turn_direction = 0;
         }
         else { /* receive from server or communicate with gui */
+			/* Communicate with gui */
+       
             if (udp_listen()) {
                 Datagram* received_datagram = receive_datagram();
                 process_datagram(received_datagram);
             }
-            /* Communicate with gui */
             if (tcp_listen()) {
                 receive_tcp();
-            }
+            }			
+            
         }
     }
 }
