@@ -21,13 +21,15 @@ DatagramClientToServer::DatagramClientToServer(char *raw_data, size_t len) {
     current_ptr += 4;
     player_name = new char[len - 13];
     memcpy(player_name, current_ptr, len - 13);
+    if (len == 13)
+        no_name = true;
 }
 
 uint64_t DatagramClientToServer::get_session_id() { return session_id; }
 uint32_t DatagramClientToServer::get_next_expected_event_no() { return next_expected_event_no; }
 char* DatagramClientToServer::get_player_name() { return player_name; }
 int8_t DatagramClientToServer::get_turn_direction() { return turn_direction; }
-bool DatagramClientToServer::no_player_name() { return strlen(player_name) == 0; }
+bool DatagramClientToServer::no_player_name() { return no_name; }
 
 bool DatagramClientToServer::is_valid() {
     if (turn_direction < -1 || turn_direction > 1)

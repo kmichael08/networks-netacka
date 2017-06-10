@@ -187,9 +187,9 @@ Player* Server::add_new_player(DatagramClientToServer *datagram, sockaddr_in *cl
     char* name = datagram->get_player_name();
 
     Player* player = new Player(datagram->get_session_id(), name, client_address);
-
-    if (datagram->no_player_name())
+    if (datagram->no_player_name()) {
         spectators.push_back(player);
+    }
     else
         players.push_back(player);
 
