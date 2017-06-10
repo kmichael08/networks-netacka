@@ -62,7 +62,7 @@ void Player::turn(int8_t turn_direction, uint32_t turning_speed) {
 
 void Player::move() {
     headx += cos(direction * M_PI / 180.);
-    heady -= sin(direction * M_PI / 180.);
+    heady += sin(direction * M_PI / 180.);
 }
 
 bool Board::inside_board(double x, double y) {
