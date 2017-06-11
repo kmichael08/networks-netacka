@@ -65,7 +65,7 @@ Server::Server(int argc, char **argv) {
         syserr("bind");
 
     snda_len = (socklen_t) sizeof(client_address);
-
+    turn_time = uint64_t(1000000 / speed); /* in microseconds */
 }
 
 /* Comparator to sort players by their names lexicographically */
@@ -94,6 +94,7 @@ void Server::init_players(vector<Player *>& current_players, Game* game) {
 }
 
 void Server::new_game() {
+    first_event_not_sent_to_all = 0;
     uint32_t game_id = next_random_number();
     vector<char*> players_names;
     vector<Player*> current_players(players); /* Copy players, only the ones, that were present before start of the game */
@@ -102,7 +103,7 @@ void Server::new_game() {
     for (Player* player: current_players)
         players_names.push_back(player->get_name());
 
-    Game* game = new Game(game_id, width, height, current_players, turn_time(), turning_speed);
+    Game* game = new Game(game_id, width, height, current_players, get_turn_time(), turning_speed);
 
     game->add_new_game(width, height, players_names);
 
@@ -113,22 +114,25 @@ void Server::new_game() {
     current_game = game;
 }
 
-uint64_t Server::turn_time() {
-    return 1000000 / speed;
+uint64_t Server::get_turn_time() {
+    return turn_time;
 }
 
-bool Server::listen()  {
+bool Server::udp_listen()  {
     sock->events = POLLIN;
     sock->revents = 0;
-    return poll(sock, 1, TIMEOUT_MILLISECS) == 1;
+    return poll(sock, 1, TIMEOUT_MILLISECS) > 0;
 }
 
 void Server::send_udp(Player* player, char* datagram, size_t len) {
     int sflags = 0;
+
     ssize_t snd_len = sendto(sock->fd, datagram, (size_t) len, sflags,
                              (sockaddr *) player->get_client_address(), snda_len);
+
+
     if (snd_len < 0 || size_t(snd_len) != len)
-        syserr("error on sending datagram to client socket");
+        printf("error on sending datagram to client socket\n");
 }
 
 int Server::current_players_number() {
@@ -150,8 +154,9 @@ void Server::receive_udp() {
 
     if (player == nullptr) { /* First time we hear from the player */
         /* Players number exceeded or name already exists */
-        if (current_players_number() == MAX_CLIENTS || name_exist(datagram->get_player_name()))
+        if (current_players_number() == MAX_CLIENTS || name_exist(datagram->get_player_name())) {
             return;
+        }
         else
         {
             player = add_new_player(datagram, client_address);
@@ -159,7 +164,7 @@ void Server::receive_udp() {
     }
     else { /* Existing player */
         player->update();
-        /* if the session id is larger than initial, the player is reseted TODO test it */
+        /* if the session id is larger than initial, the player is reseted */
         if (datagram->get_session_id() > player->get_session_id()) {
             reset_player(player, datagram->no_player_name());
         }
@@ -167,13 +172,12 @@ void Server::receive_udp() {
 
     if (!datagram->is_valid()) {}
     else {
-
         if (active_game) {
             send_events(datagram->get_next_expected_event_no(), player);
             player->set_current_turn_direction(datagram->get_turn_direction());
         }
         else {
-            if (datagram->get_turn_direction() != 0) /* pressing left/right gives a singal of readiness */
+            if (datagram->get_turn_direction() != 0) /* pressing left/right gives a signal of readiness */
                 player->reborn();
         }
     }
@@ -183,9 +187,9 @@ Player* Server::add_new_player(DatagramClientToServer *datagram, sockaddr_in *cl
     char* name = datagram->get_player_name();
 
     Player* player = new Player(datagram->get_session_id(), name, client_address);
-
-    if (datagram->no_player_name())
+    if (datagram->no_player_name()) {
         spectators.push_back(player);
+    }
     else
         players.push_back(player);
 
@@ -213,13 +217,14 @@ void Server::send_events(uint32_t first_event, Player *player) {
     if (first_event >= current_game->get_events_number()) /* there is less event */
         return;
 
-    vector<Event*> events_to_send = current_game->get_events_from(first_event);
 
+    vector<Event*> events_to_send = current_game->get_events_from(first_event);
 
     DatagramServerToClient* data = new DatagramServerToClient(current_game->get_game_id(), events_to_send);
 
-    for (Datagram* datagram : data->datagrams())
+    for (Datagram* datagram : data->datagrams()) {
         send_udp(player, datagram->get_data(), datagram->get_len());
+    }
 
 }
 
@@ -242,15 +247,16 @@ void Server::reset_player(Player *player, bool is_spectator) {
 
 bool Server::name_exist(char* name) {
     for (Player* player: players)
-        if (strncmp(player->get_name(), name, strlen(name)))
+        if (strncmp(player->get_name(), name, strlen(name)) == 0)
             return true;
 
     return false;
 }
 
 void Server::send_to_all() {
-    for (Player* player: players)
+    for (Player* player: players) {
         send_events(first_event_not_sent_to_all, player);
+    }
     for (Player* player: spectators)
         send_events(first_event_not_sent_to_all, player);
 
@@ -267,6 +273,7 @@ Game *Server::get_current_game() {
 
 void Server::finish_game() {
     active_game = false;
+    send_to_all(); /* send a game_over message */
 }
 
 bool Server::all_players_ready() const {

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.5)
 project(networks_netacka)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -19,6 +19,4 @@ set(CLIENT client_utils.h client_utils.cpp event.h event.cpp crc32.h crc32.cpp u
         datagramClientToServer.h datagramClientToServer.cpp client.cpp clock.cpp clock.h)
 
 add_executable(siktacka-server ${SOURCE_FILES})
-add_executable(test_s_to_c ${TEST_S_TO_C})
-add_executable(test_time ${TEST_TIME})
 add_executable(siktacka-client ${CLIENT})

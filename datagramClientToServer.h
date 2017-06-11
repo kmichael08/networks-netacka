@@ -13,6 +13,7 @@ private:
     int8_t turn_direction; /* in {-1, 0, 1}, -1 LEFT, +1 RIGHT, 0 STRAIGHT */
     uint32_t next_expected_event_no;
     char* player_name; /* 0-64 ASCII, in range[33, 126], empty - observer */
+    bool no_name = false;
 public:
     DatagramClientToServer(uint64_t session_id, int8_t turn_direction,
                            uint32_t next_expected_event_no, char* player_name);

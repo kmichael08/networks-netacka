@@ -10,7 +10,6 @@ DatagramClientToServer::DatagramClientToServer(uint64_t session_id, int8_t turn_
 {}
 
 DatagramClientToServer::DatagramClientToServer(char *raw_data, size_t len) {
-    raw_data[len] = '\0';
     char* current_ptr = raw_data;
     memcpy(&session_id, current_ptr, 8);
     session_id = be64toh(session_id); /* network to host bytes order */
@@ -22,13 +21,15 @@ DatagramClientToServer::DatagramClientToServer(char *raw_data, size_t len) {
     current_ptr += 4;
     player_name = new char[len - 13];
     memcpy(player_name, current_ptr, len - 13);
+    if (len == 13)
+        no_name = true;
 }
 
 uint64_t DatagramClientToServer::get_session_id() { return session_id; }
 uint32_t DatagramClientToServer::get_next_expected_event_no() { return next_expected_event_no; }
 char* DatagramClientToServer::get_player_name() { return player_name; }
 int8_t DatagramClientToServer::get_turn_direction() { return turn_direction; }
-bool DatagramClientToServer::no_player_name() { return strlen(player_name) == 0; }
+bool DatagramClientToServer::no_player_name() { return no_name; }
 
 bool DatagramClientToServer::is_valid() {
     if (turn_direction < -1 || turn_direction > 1)
@@ -53,7 +54,7 @@ bool DatagramClientToServer::valid_player_name(char *player_name_arg) {
 }
 
 Datagram *DatagramClientToServer::get_raw_datagram() {
-    size_t len = 13 + strlen(player_name) + 1;
+    size_t len = 13 + strlen(player_name);
     char* datagram = new char[len];
     char* current_ptr = datagram;
     uint64_t net_session_id = htobe64(session_id);
@@ -66,7 +67,6 @@ Datagram *DatagramClientToServer::get_raw_datagram() {
     current_ptr += 4;
     memcpy(current_ptr, player_name, strlen(player_name));
     current_ptr += strlen(player_name);
-    *current_ptr = '\0';
     return new Datagram(datagram, len);
 }
 

@@ -1,11 +1,15 @@
--length of the datagrams '\0' in the end
--add poll, select? how to do the timeout? how not to block things
--unit tests - IMPORTANT
 -mistakes from the first task
--how to test the solution, how to test parts separately
--read questions from szkopul, read the task description in detail
+-read the task description in detail OK
 -errors handling
 -makefile
 -ipv6
--const expressions
--test on students
+-test on students, MUST WORK WITH TEST SERVER OK
+-comments
+-send without duplicates, in order OK
+-test, understand everything
+-play with different parameters OK
+-asserty, TODOS OK
+-game_id OK
+-more players OK
+-what if one event is larger than 512? what happens now? OK
+-spectator

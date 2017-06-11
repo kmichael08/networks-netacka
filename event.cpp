@@ -73,7 +73,6 @@ Event* PlayerEliminated::parse_single_event_data(uint32_t event_no, char *event_
         memcpy(&player_num, event_data, 1);
         return new PlayerEliminated(event_no, player_num);
     }
-
     return nullptr;
 }
 
@@ -177,7 +176,7 @@ vector<Event *> &Event::parse_events(char *event_data, size_t len) {
 
     size_t remained_length = len;
     /* 13 bytes for data without event_data */
-    while (current_ptr != event_data + len && remained_length > 13) {
+    while (current_ptr != event_data + len && remained_length >= 13) {
         memcpy(&events_len, current_ptr, 4);
         current_ptr += 4;
         remained_length -= 4;

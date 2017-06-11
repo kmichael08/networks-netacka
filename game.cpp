@@ -7,7 +7,7 @@ width(width), height(height)
 {
     board = new uint8_t*[width];
     for (uint32_t i = 0; i < width; i++)
-        board[i] = new uint8_t[height](); /* TODO check, but this should init with zeros */
+        board[i] = new uint8_t[height](); /* this should init with zeros */
 }
 
 bool Board::is_occupied(uint32_t x, uint32_t y) {
@@ -60,10 +60,9 @@ void Player::turn(int8_t turn_direction, uint32_t turning_speed) {
     direction = (uint32_t)(direction + turn_direction * turning_speed + MAX_DIRECTION) % MAX_DIRECTION;
 }
 
-/* TODO check the correctness of these formula */
 void Player::move() {
-    headx += cos(direction);
-    heady -= sin(direction);
+    headx += cos(direction * M_PI / 180.);
+    heady += sin(direction * M_PI / 180.);
 }
 
 bool Board::inside_board(double x, double y) {
@@ -98,15 +97,21 @@ bool Game::game_ended() {
 
 void Game::move_snake(int8_t turn_direction, Player *player) {
     uint8_t player_num = player->get_player_number();
+    uint32_t initial_x = (uint32_t)player->get_headx();
+    uint32_t initial_y = (uint32_t)player->get_heady();
     player->turn(turn_direction, turning_speed);
     player->move();
     double x = player->get_headx();
     double y = player->get_heady();
+    uint32_t current_x = (uint32_t)x;
+    uint32_t current_y = (uint32_t)y;
+    if (current_x == initial_x && current_y == initial_y) /* Position has not changed */
+        return;
 
     if (!board->inside_board(x, y)) {
         add_player_eliminated(player_num);
     }
-    if (board->is_occupied(uint32_t(x), (uint32_t)(y))) {
+    else if (board->is_occupied(current_x, current_y)) {
         add_player_eliminated(player_num);
     }
     else {
@@ -138,8 +143,10 @@ Player::Player(Player *other_player) {
 uint32_t Game::get_game_id() const { return game_id; }
 
 vector<Event *> Game::get_events_from(uint32_t first_event_no) {
-    assert(first_event_no < all_events.size());
-    return vector<Event *>(all_events.begin() + first_event_no, all_events.end());
+    if (first_event_no < all_events.size())
+        return vector<Event *>(all_events.begin() + first_event_no, all_events.end());
+    else
+        return vector<Event *>();
 }
 
 uint32_t Game::get_events_number() const {
@@ -150,6 +157,7 @@ void Game::end_game() {
     for (Player* player: players)
         player->kill();
     add_game_over();
+
 }
 
 void Game::move_snakes() {

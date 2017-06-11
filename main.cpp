@@ -5,7 +5,7 @@ int main(int argc, char* argv[]) {
     //server.print_arguments();
 
     while (true) {
-        if (server.listen()) { /* receive udp */
+        if (server.udp_listen()) { /* receive udp */
             server.receive_udp();
         }
 
@@ -20,12 +20,12 @@ int main(int argc, char* argv[]) {
                 server.get_current_game()->end_game();
                 server.finish_game();
             }
-            else /* if game not ended, check if the turn is not ending */
-            if (server.get_current_game()->end_turn()) { /* turn time ended */
-                server.get_current_game()->move_snakes();
-                server.get_current_game()->next_turn();
+            else { /* if game not ended, check if the turn is not ending */
+                if (server.get_current_game()->end_turn()) { /* turn time ended */
+                    server.get_current_game()->move_snakes();
+                    server.get_current_game()->next_turn();
+                }
             }
-
         }
         server.disconnect_not_responding_users();
     }

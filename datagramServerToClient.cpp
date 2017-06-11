@@ -3,7 +3,6 @@
 #include <cassert>
 #include "datagramServerToClient.h"
 
-/* TODO NEW_GAME event may not fit into datagram alone - fix it */
 Datagram* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t size) {
     char* datagram = new char[size + 4]; /* 4 additional bytes for game_id */
     uint32_t current_position = 0;
@@ -16,7 +15,7 @@ Datagram* DatagramServerToClient::make_datagram(VEIT start, VEIT end, uint32_t s
         current_position += event_length;
     }
 
-    assert(current_position == size + 4);
+    //assert(current_position == size + 4);
 
     return new Datagram(datagram, current_position);
 }
@@ -34,6 +33,7 @@ vector<Datagram *> DatagramServerToClient::datagrams() {
             iter++;
         }
         else {
+            if (start == iter) { return result; } /* one event is even too large */
             result.push_back(make_datagram(start, iter, current_size));
             current_size = next_len;
             start = iter;
@@ -53,7 +53,7 @@ DatagramServerToClient::DatagramServerToClient(uint32_t game_id, vector<Event *>
 {}
 
 DatagramServerToClient *DatagramServerToClient::parse_datagram(char* datagram, size_t len) {
-    assert(len > 4);
+    //assert(len > 4);
     uint32_t parsed_game_id;
     memcpy(&parsed_game_id, datagram, 4);
     parsed_game_id = ntohl(parsed_game_id);
